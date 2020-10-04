@@ -182,6 +182,8 @@ Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
 string objectFile = "Meshes/example.obj";       // Mesh to import
 
+int solverIteration = 3;      
+
 // END GLOBAL VARIABLES
 
 
@@ -218,7 +220,7 @@ public:
   
   void initScene() {
 
-      for (int i = 0; i < _X.size(); i++) {
+      for (tIndex i = 0; i < _X.size(); i++) {
           _mass[i] = _defaultMass;
           _w[i] = 1 / _mass[i];
       }
@@ -233,48 +235,64 @@ public:
   void update() {
     cout << "." << flush;
     _acc = vector<Vec3f>(_X.size(), Vec3f(0, 0, 0));
-    applyBodyForce();
-    updateVelocity();
-    updatePosition();
-    generateCollisionConstraints();
-    //updateGridIsovalues();
-    computeTriangles(c);
-    c++;
 
+    // apply External Force
+    for (tIndex i = 0; i < vertexCount(); ++i) {
+        _acc[i] += _g;
+    }
+    // update Velocity
+#pragma omp parallel for
+    for (tIndex i = 0; i < vertexCount(); ++i) {
+        _vel[i] += _dt * _w[i] * _acc[i];   // simple forward Euler
+    }
+
+    dampVelocities();
+
+    // update Temporary Position
+#pragma omp parallel for
+    for (tIndex i = 0; i < vertexCount(); ++i) {
+        _P[i] = _X[i] + _dt * _vel[i];
+    }
+
+    generateCollisionConstraints();
+    // Solve constraints
+    for (int i = 0; i < solverIteration; i++) {
+        projectConstraints();
+    }
+    
+    for (tIndex i = 0; i < vertexCount(); ++i) {
+        _vel[i] = (_P[i] - _X[i]) / _dt;
+        _X[i] = _P[i];
+    }
+    velocityUpdate();
+    writeInSTL(c);
+    c++;
 
   }
 
-  tIndex particleCount() const { return _X.size(); }
+  tIndex vertexCount() const { return _X.size(); }
   const Vec3f& position(const tIndex i) const { return _X[i]; }
 
 
 private:
 
-  void applyBodyForce() {
-#pragma omp parallel for
-    for(tIndex i=0; i<particleCount(); ++i) {
-      _acc[i] += _g;
-    }
-  }
-
-  void updateVelocity() {
-#pragma omp parallel for
-    for(tIndex i=0; i<particleCount(); ++i) {
-      _vel[i] += _dt*_acc[i];   // simple forward Euler
-    }
-  }
-
-  void updatePosition() {
-#pragma omp parallel for
-    for(tIndex i=0; i<particleCount(); ++i) {
-      _X[i] += _dt*_vel[i];
-    }
+  void dampVelocities() {
+      // TODO
   }
 
   void generateCollisionConstraints() {
     // TODO
     }
   
+  void projectConstraints() {
+      // TODO
+  }
+
+  void velocityUpdate() {
+      // TODO
+  }
+
+
   //Compute isovalues to know if we are in or out an object
 /* void updateGridIsovalues(){
   const Real sr = _kernel.supportRadius();
@@ -319,16 +337,9 @@ private:
   } */
 
 // Allows to write STL file from a list of triangles
-  void computeTriangles(int c){
+  void writeInSTL(int c){
     // TO CHANGE
-    //#pragma omp parallel for
     /*
-    triangles.clear();
-    for(tIndex i =0; i < gridcells.size(); i++) {
-      Polygonise(gridcells[i],0, &triangles);
-    }
-    int n = triangles.size()/3;
-
     ofstream myfile;
     if( c < 10)
     myfile.open ("water00"  + to_string(c) + ".stl");
