@@ -163,7 +163,7 @@ inline const Vec3f operator*(const Real s, const Vec3f& r) { return r * s; }
 
 // GLOBAL VARIABLES
 
-vector<Vec3f> triangles;
+vector<tIndex> triangles;
 // vertex data
 vector<Vec3f> _X;      // true position at the end of step
 vector<Vec3f> _P;      // position approximation during step
@@ -174,13 +174,13 @@ vector<Real> _mass;      // mass of each vertex
 vector<Real> _w;        // w[i] = 1/mass[i]   
 
 // simulation
+int nFrames = 240;
 Real _dt = 0.05;                     // time step
-
 
 // Coefficients
 Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
-string objectFile = "Meshes/example.obj";       // Mesh to import
+string objectFile = "Meshes/cube.obj";       // Mesh to import
 
 int solverIteration = 3;      
 
@@ -364,11 +364,70 @@ private:
 
   };
 
+  // For importation
+  template <typename Out>
+  void split(const std::string& s, char delim, Out result) {
+      std::istringstream iss(s);
+      std::string item;
+      while (std::getline(iss, item, delim)) {
+          *result++ = item;
+      }
+  }
+
+  // only working with .obj file
+  void ImportMesh(string FILENAME) {
+      
+      ifstream file(FILENAME);
+      if (file.is_open()) {
+          string line;
+          tIndex vertexOffset = _X.size();
+          while (std::getline(file, line)) {
+              
+              vector<string> words;
+              split(line, ' ', back_inserter(words));
+
+              if (words[0].compare("v") == 0) {
+                  float x = stof(words[1]);
+                  float y = stof(words[2]);
+                  float z = stof(words[3]);
+                  _X.push_back(Vec3f(x, y, z));
+              }
+
+              if (words[0].compare("f") == 0) {
+                  tIndex a = stol(words[1]);
+                  tIndex b = stol(words[2]);
+                  tIndex c = stol(words[3]);
+                  triangles.push_back(a+ vertexOffset);
+                  triangles.push_back(b+ vertexOffset);
+                  triangles.push_back(c+ vertexOffset);
+              }
+          }
+          file.close();
+          cout << "Successfully imported " << FILENAME << endl;
+      }
+      else {
+          cout << "WARNING : Failed to import " << FILENAME << endl;
+      }
+
+      return;
+      
+
+  }
 
 
-  void ImportMesh(string file) {
-      // TODO
-}
+  // Utilities
+
+  void printVertexAndTriangles() {
+      cout << "---VERTICES---" << endl;
+      for (tIndex i = 0; i < _X.size(); i++) {
+          cout << _X[i] << endl;
+      }
+      cout << "---TRIANGLES---" << endl;
+      for (tIndex i = 0; i < triangles.size()/3; i++) {
+          cout << triangles[3*i] <<" / "<< triangles[3 * i+1] << " / " << triangles[3 * i+2] << endl;
+      }
+  }
+
 
 
 
@@ -379,14 +438,19 @@ private:
 
 
 int main(int argc, char **argv) {
-  int nFrames = 240;
-  ImportMesh(objectFile);
 
+  _X.clear();
+  triangles.clear();
+  ImportMesh(objectFile);
+  printVertexAndTriangles();
+
+  /*
   Solver solver;
   solver.initScene();
 
   for (int i = 0; i < nFrames; i++) {
       solver.update();
   }
+  */
   return EXIT_SUCCESS;
 }
