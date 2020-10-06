@@ -7,9 +7,15 @@
 #include <stdlib.h>
 #include <ctime>
 #include <string>
+#include <set>
+#include <utility>
 using namespace std;
 typedef float Real;
 typedef long int tIndex;
+
+// Function declaration
+void ImportMesh(string FILENAME);
+void printVertexAndTrianglesAndEdges();
 
 const int kViewScale = 15;
 
@@ -157,6 +163,7 @@ public:
     }
 };
 typedef Vector3<Real> Vec3f;
+typedef pair<tIndex, tIndex> Edge;
 inline const Vec3f operator*(const Real s, const Vec3f& r) { return r * s; }
 
 
@@ -164,6 +171,7 @@ inline const Vec3f operator*(const Real s, const Vec3f& r) { return r * s; }
 // GLOBAL VARIABLES
 
 vector<tIndex> triangles;
+set<Edge> edges;        // edges are always (a,b) with a<b (to avoid repetition)
 // vertex data
 vector<Vec3f> _X;      // true position at the end of step
 vector<Vec3f> _P;      // position approximation during step
@@ -174,7 +182,7 @@ vector<Real> _mass;      // mass of each vertex
 vector<Real> _w;        // w[i] = 1/mass[i]   
 
 // simulation
-int nFrames = 240;
+int nFrames = 5;
 Real _dt = 0.05;                     // time step
 
 // Coefficients
@@ -220,14 +228,27 @@ public:
   
   void initScene() {
 
+      //Initialize variables for importing
+      _X = vector<Vec3f>();
+      triangles = vector<tIndex>();
+      edges = set<Edge>();
+
+      // Import objects
+      ImportMesh(objectFile);
+
+      printVertexAndTrianglesAndEdges();
+
+
+      //Compute and initialize other values
+      _P = vector<Vec3f>(vertexCount(), Vec3f(0, 0, 0));
+      _vel = vector<Vec3f>(vertexCount(), Vec3f(0, 0, 0));
+      _acc = vector<Vec3f>(vertexCount(), Vec3f(0, 0, 0));
+      _mass = vector<Real>(vertexCount(), _defaultMass);
+      _w = vector<Real>(vertexCount(), 1);
+
       for (tIndex i = 0; i < _X.size(); i++) {
-          _mass[i] = _defaultMass;
           _w[i] = 1 / _mass[i];
       }
-
-    // make sure for the other quantities
-    _vel = vector<Vec3f>(_X.size(), Vec3f(0, 0, 0));
-    _acc = vector<Vec3f>(_X.size(), Vec3f(0, 0, 0));
 
   }
   int c = 0;
@@ -380,7 +401,7 @@ private:
       ifstream file(FILENAME);
       if (file.is_open()) {
           string line;
-          tIndex vertexOffset = _X.size();
+          tIndex vertexOffset = _X.size(); //to avoid error when importing multiple meshes
           while (std::getline(file, line)) {
               
               vector<string> words;
@@ -394,12 +415,23 @@ private:
               }
 
               if (words[0].compare("f") == 0) {
-                  tIndex a = stol(words[1]);
-                  tIndex b = stol(words[2]);
-                  tIndex c = stol(words[3]);
-                  triangles.push_back(a+ vertexOffset);
-                  triangles.push_back(b+ vertexOffset);
-                  triangles.push_back(c+ vertexOffset);
+                  tIndex a = stol(words[1]) + vertexOffset;
+                  tIndex b = stol(words[2]) + vertexOffset;
+                  tIndex c = stol(words[3]) + vertexOffset;
+                  triangles.push_back(a);
+                  triangles.push_back(b);
+                  triangles.push_back(c);
+
+                  // Fill edges
+                  if (a > b) { edges.insert(make_pair(b, a));}
+                  else { edges.insert(make_pair(a, b)); }
+
+                  if (c > b) { edges.insert(make_pair(b, c)); }
+                  else { edges.insert(make_pair(c, b)); }
+
+                  if (c > a) { edges.insert(make_pair(a, c)); }
+                  else { edges.insert(make_pair(c, a)); }
+
               }
           }
           file.close();
@@ -417,7 +449,8 @@ private:
 
   // Utilities
 
-  void printVertexAndTriangles() {
+  void printVertexAndTrianglesAndEdges() {
+      cout << endl;
       cout << "---VERTICES---" << endl;
       for (tIndex i = 0; i < _X.size(); i++) {
           cout << _X[i] << endl;
@@ -426,6 +459,12 @@ private:
       for (tIndex i = 0; i < triangles.size()/3; i++) {
           cout << triangles[3*i] <<" / "<< triangles[3 * i+1] << " / " << triangles[3 * i+2] << endl;
       }
+      cout << "---EDGES---" << endl;
+      for (auto e: edges) {
+          cout << e.first << "  " << e.second << endl;
+      }
+      cout << endl;
+
   }
 
 
@@ -439,18 +478,15 @@ private:
 
 int main(int argc, char **argv) {
 
-  _X.clear();
-  triangles.clear();
-  ImportMesh(objectFile);
-  printVertexAndTriangles();
-
-  /*
   Solver solver;
   solver.initScene();
-
+  
   for (int i = 0; i < nFrames; i++) {
       solver.update();
   }
-  */
+  
+  cout << "State after " << nFrames << " frames : " << endl;
+  printVertexAndTrianglesAndEdges();
+  
   return EXIT_SUCCESS;
 }
