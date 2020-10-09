@@ -179,7 +179,7 @@ vector<Vec3f> _vel;      // velocity
 vector<Vec3f> _acc;      // acceleration
 Real _defaultMass = 1;      // mass given for each vertex by default
 vector<Real> _mass;      // mass of each vertex
-vector<Real> _w;        // w[i] = 1/mass[i]   
+vector<Real> _w;        // w[i] = 1/mass[i]
 
 // simulation
 int nFrames = 5;
@@ -190,7 +190,7 @@ Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
 string objectFile = "Meshes/cube.obj";       // Mesh to import
 
-int solverIteration = 3;      
+int solverIteration = 3;
 
 // END GLOBAL VARIABLES
 
@@ -225,7 +225,7 @@ Vec3f VertexInterp( double isolevel,Vec3f p1,Vec3f p2,double valp1,double valp2)
 class Solver {
 public:
     //explicit Solver();
-  
+
   void initScene() {
 
       //Initialize variables for importing
@@ -280,13 +280,13 @@ public:
     for (int i = 0; i < solverIteration; i++) {
         projectConstraints();
     }
-    
+
     for (tIndex i = 0; i < vertexCount(); ++i) {
         _vel[i] = (_P[i] - _X[i]) / _dt;
         _X[i] = _P[i];
     }
     velocityUpdate();
-    writeInSTL(c);
+    writeOBJFile(c);
     c++;
 
   }
@@ -304,7 +304,7 @@ private:
   void generateCollisionConstraints() {
     // TODO
     }
-  
+
   void projectConstraints() {
       // TODO
   }
@@ -358,28 +358,25 @@ private:
   } */
 
 // Allows to write STL file from a list of triangles
-  void writeInSTL(int c){
-    // TO CHANGE
-    /*
+  void writeOBJFile(int c){
+
+    string path = "Output/frame";
     ofstream myfile;
     if( c < 10)
-    myfile.open ("water00"  + to_string(c) + ".stl");
+    myfile.open (path+"00"  + to_string(c) + ".obj");
     else {if( c >= 10 && c < 100)
-    myfile.open ("water0"  + to_string(c) + ".stl");
-    else myfile.open ("water"  + to_string(c) + ".stl");}
+    myfile.open (path+"0"  + to_string(c) + ".obj");
+    else myfile.open (path + to_string(c) + ".obj");}
 
-    myfile << "solid water" << endl;
-
-    for (tIndex j=0; j <n;j++){
-      Vec3f p1 = triangles[3*j], p2 = triangles[3*j+1] , p3 = triangles[3*j+2];
-      Vec3f B = p2-p1, A = p3-p1;
-      Vec3f normal = Vec3f(A.y*B.z-A.z*B.y,A.z*B.x-A.x*B.z,A.x*B.y-A.y*B.x);
-      myfile << "facet normal " << normal << endl << "   " << "outer loop" << endl << "      " << "vertex " << p1   << endl << "      " << "vertex " << p2  <<  endl << "      " << "vertex " << p3 << endl << "   " << "endloop" << endl << "endfacet" << endl;
+    myfile << "output frame" << endl;
+    for (auto x:_X){
+      myfile <<"v "<<x.x<<" "<<x.y<<" "<<x.z<<endl;
     }
-    myfile << "endsolid water" << endl;
-
+    for (int t=0;t<triangles.size()/3;t++){
+      myfile<<"f "<<triangles[3*t]<<" "<<triangles[3*t+1]<<" "<<triangles[3*t+2]<<endl;
+    }
     myfile.close();
-    */
+
   }
 
 
@@ -397,13 +394,13 @@ private:
 
   // only working with .obj file
   void ImportMesh(string FILENAME) {
-      
+
       ifstream file(FILENAME);
       if (file.is_open()) {
           string line;
           tIndex vertexOffset = _X.size(); //to avoid error when importing multiple meshes
           while (std::getline(file, line)) {
-              
+
               vector<string> words;
               split(line, ' ', back_inserter(words));
 
@@ -442,7 +439,7 @@ private:
       }
 
       return;
-      
+
 
   }
 
@@ -480,13 +477,13 @@ int main(int argc, char **argv) {
 
   Solver solver;
   solver.initScene();
-  
+
   for (int i = 0; i < nFrames; i++) {
       solver.update();
   }
-  
+
   cout << "State after " << nFrames << " frames : " << endl;
   printVertexAndTrianglesAndEdges();
-  
+
   return EXIT_SUCCESS;
 }

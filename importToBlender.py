@@ -14,11 +14,11 @@ obj_list = [item for item in file_list if item.endswith('.obj')]
 # loop through the strings in obj_list and add the files to the scene
 for item in obj_list:
     path_to_file = os.path.join(path_to_obj_dir, item)
-    bpy.ops.import_mesh.obj(filepath = path_to_file,axis_forward='Z', axis_up='Y')
+    bpy.ops.import_scene.obj(filepath = path_to_file,axis_forward='Z', axis_up='Y')
     
 
 def ani_handler(scene):
-    name = 'Water'
+    name = 'Simultaion'
     objs = [obj for obj in scene.objects.values() if name in obj.name]
     for i, obj in enumerate(objs):
         obj.hide_set(i != ((scene.frame_current-1) % len(objs))) # Blender 2.80
