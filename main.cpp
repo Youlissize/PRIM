@@ -19,36 +19,21 @@ typedef long int tIndex;
 
 
 
-// Function declaration
-void ImportMesh(string FILENAME);
-void printVertexAndTrianglesAndEdges();
-
-
-
-
-typedef pair<tIndex, tIndex> Edge;
 
 // GLOBAL VARIABLES
 
-vector<tIndex> triangles;
-set<Edge> edges;        // edges are always (a,b) with a<b (to avoid repetition)
-// vertex data
-vector<Vec3f> _X;      // true position at the end of step
-vector<Vec3f> _P;      // position approximation during step
-vector<Vec3f> _vel;      // velocity
-vector<Vec3f> _acc;      // acceleration
-Real _defaultMass = 1;      // mass given for each vertex by default
-vector<Real> _mass;      // mass of each vertex
-vector<Real> _w;        // w[i] = 1/mass[i]
+// Objects
+vector<Mesh> meshes;
+string objectFile = "Meshes/cube.obj";       // Mesh to import
 
 // simulation
-int nFrames = 5;
+int nFrames = 20;
 Real _dt = 0.05;                     // time step
 
 // Coefficients
 Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
-string objectFile = "Meshes/cube.obj";       // Mesh to import
+
 
 int solverIteration = 3;
 
@@ -88,51 +73,44 @@ public:
 
   void initScene() {
 
-      //Initialize variables for importing
-      _X = vector<Vec3f>();
-      triangles = vector<tIndex>();
-      edges = set<Edge>();
-
-      // Import objects
-      ImportMesh(objectFile);
-
-      printVertexAndTrianglesAndEdges();
-
-
-      //Compute and initialize other values
-      _P = vector<Vec3f>(vertexCount(), Vec3f(0, 0, 0));
-      _vel = vector<Vec3f>(vertexCount(), Vec3f(0, 0, 0));
-      _acc = vector<Vec3f>(vertexCount(), Vec3f(0, 0, 0));
-      _mass = vector<Real>(vertexCount(), _defaultMass);
-      _w = vector<Real>(vertexCount(), 1);
-
-      for (tIndex i = 0; i < _X.size(); i++) {
-          _w[i] = 1 / _mass[i];
-      }
-
+      //Import meshes
+      meshes = vector<Mesh>();
+      meshes.push_back(Mesh(objectFile));
   }
+
   int c = 0;
 
   void update() {
     cout << "." << flush;
-    _acc = vector<Vec3f>(_X.size(), Vec3f(0, 0, 0));
 
-    // apply External Force
-    for (tIndex i = 0; i < vertexCount(); ++i) {
-        _acc[i] += _g;
+    // apply gravity
+
+    for(auto& mesh:meshes) {
+      for (tIndex i = 0; i < mesh.X.size(); ++i) {
+        mesh.acc[i]= _g;
+        //cout<<mesh.acc[i];
+      }
+      //mesh.acc = vector<Vec3f>(mesh.X.size(), _g);
     }
+
+
     // update Velocity
-#pragma omp parallel for
-    for (tIndex i = 0; i < vertexCount(); ++i) {
-        _vel[i] += _dt * _w[i] * _acc[i];   // simple forward Euler
+    for(auto& mesh:meshes) {
+//  #pragma omp parallel for
+      for (tIndex i = 0; i < mesh.X.size(); ++i) {
+          mesh.vel[i] += _dt * mesh.w[i] * mesh.acc[i];   // simple forward Euler
+          //cout<<mesh.acc[i];
+      }
     }
 
     dampVelocities();
 
     // update Temporary Position
-#pragma omp parallel for
-    for (tIndex i = 0; i < vertexCount(); ++i) {
-        _P[i] = _X[i] + _dt * _vel[i];
+    for(auto& mesh:meshes) {
+  #pragma omp parallel for
+      for (tIndex i = 0; i < mesh.X.size(); ++i) {
+          mesh.P[i] = mesh.X[i] + _dt * mesh.vel[i];
+      }
     }
 
     generateCollisionConstraints();
@@ -141,18 +119,18 @@ public:
         projectConstraints();
     }
 
-    for (tIndex i = 0; i < vertexCount(); ++i) {
-        _vel[i] = (_P[i] - _X[i]) / _dt;
-        _X[i] = _P[i];
+    for(auto& mesh:meshes) {
+      for (tIndex i = 0; i < mesh.X.size(); ++i) {
+          mesh.vel[i] = (mesh.P[i] - mesh.X[i]) / _dt;
+          mesh.X[i] = mesh.P[i];
+      }
     }
+
     velocityUpdate();
     writeOBJFile(c);
     c++;
 
   }
-
-  tIndex vertexCount() const { return _X.size(); }
-  const Vec3f& position(const tIndex i) const { return _X[i]; }
 
 
 private:
@@ -173,6 +151,11 @@ private:
       // TODO
   }
 
+  void writeOBJFile(int c){
+    for(auto& mesh: meshes) {
+      mesh.exportToOBJ(c);
+    }
+  }
 
   //Compute isovalues to know if we are in or out an object
 /* void updateGridIsovalues(){
@@ -217,117 +200,8 @@ private:
     }
   } */
 
-// Allows to write STL file from a list of triangles
-  void writeOBJFile(int c){
 
-    string path = "Output/frame";
-    ofstream myfile;
-    if( c < 10)
-    myfile.open (path+"00"  + to_string(c) + ".obj");
-    else {if( c >= 10 && c < 100)
-    myfile.open (path+"0"  + to_string(c) + ".obj");
-    else myfile.open (path + to_string(c) + ".obj");}
-
-    myfile << "output frame" << endl;
-    for (auto x:_X){
-      myfile <<"v "<<x.x<<" "<<x.y<<" "<<x.z<<endl;
-    }
-    for (int t=0;t<triangles.size()/3;t++){
-      myfile<<"f "<<triangles[3*t]<<" "<<triangles[3*t+1]<<" "<<triangles[3*t+2]<<endl;
-    }
-    myfile.close();
-
-  }
-
-
-  };
-
-  // For importation
-  template <typename Out>
-  void split(const std::string& s, char delim, Out result) {
-      std::istringstream iss(s);
-      std::string item;
-      while (std::getline(iss, item, delim)) {
-          *result++ = item;
-      }
-  }
-
-  // only working with .obj file
-  void ImportMesh(string FILENAME) {
-
-      ifstream file(FILENAME);
-      if (file.is_open()) {
-          string line;
-          tIndex vertexOffset = _X.size(); //to avoid error when importing multiple meshes
-          while (std::getline(file, line)) {
-
-              vector<string> words;
-              split(line, ' ', back_inserter(words));
-
-              if (words[0].compare("v") == 0) {
-                  float x = stof(words[1]);
-                  float y = stof(words[2]);
-                  float z = stof(words[3]);
-                  _X.push_back(Vec3f(x, y, z));
-              }
-
-              if (words[0].compare("f") == 0) {
-                  tIndex a = stol(words[1]) + vertexOffset;
-                  tIndex b = stol(words[2]) + vertexOffset;
-                  tIndex c = stol(words[3]) + vertexOffset;
-                  triangles.push_back(a);
-                  triangles.push_back(b);
-                  triangles.push_back(c);
-
-                  // Fill edges
-                  if (a > b) { edges.insert(make_pair(b, a));}
-                  else { edges.insert(make_pair(a, b)); }
-
-                  if (c > b) { edges.insert(make_pair(b, c)); }
-                  else { edges.insert(make_pair(c, b)); }
-
-                  if (c > a) { edges.insert(make_pair(a, c)); }
-                  else { edges.insert(make_pair(c, a)); }
-
-              }
-          }
-          file.close();
-          cout << "Successfully imported " << FILENAME << endl;
-      }
-      else {
-          cout << "WARNING : Failed to import " << FILENAME << endl;
-      }
-
-      return;
-
-
-  }
-
-
-  // Utilities
-
-  void printVertexAndTrianglesAndEdges() {
-      cout << endl;
-      cout << "---VERTICES---" << endl;
-      for (tIndex i = 0; i < _X.size(); i++) {
-          cout << _X[i] << endl;
-      }
-      cout << "---TRIANGLES---" << endl;
-      for (tIndex i = 0; i < triangles.size()/3; i++) {
-          cout << triangles[3*i] <<" / "<< triangles[3 * i+1] << " / " << triangles[3 * i+2] << endl;
-      }
-      cout << "---EDGES---" << endl;
-      for (auto e: edges) {
-          cout << e.first << "  " << e.second << endl;
-      }
-      cout << endl;
-
-  }
-
-
-
-
-
+};
 
 
 
@@ -338,12 +212,14 @@ int main(int argc, char **argv) {
   Solver solver;
   solver.initScene();
 
+  meshes[0].printVertexAndTrianglesAndEdges();
+
   for (int i = 0; i < nFrames; i++) {
       solver.update();
   }
 
   cout << "State after " << nFrames << " frames : " << endl;
-  printVertexAndTrianglesAndEdges();
+  meshes[0].printVertexAndTrianglesAndEdges();
 
   return EXIT_SUCCESS;
 }
