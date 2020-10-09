@@ -216,6 +216,7 @@ int main(int argc, char **argv) {
 
   for (int i = 0; i < nFrames; i++) {
       solver.update();
+      meshes[0].exportToOBJ(i);
   }
 
   cout << "State after " << nFrames << " frames : " << endl;
