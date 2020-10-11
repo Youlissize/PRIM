@@ -5,12 +5,30 @@
 using namespace std;
 
 
+struct Vertex{
+  vector<tIndex> adjEdg; //adjacent edges
+  vector<tIndex> adjTri; //adjacent triangles
+};
+
 struct Edge{
   tIndex A; //first vertex
   tIndex B; //other vertex
-  float length; //initial Length
-
+  vector<tIndex> adjTri; //adjacent triangles
+  vector<tIndex> adjEdg; //adjacent edges
 };
+
+
+struct Triangle{
+  tIndex A; //first vertex
+  tIndex B; //second vertex
+  tIndex C; //third vertex
+  vector<tIndex> adjTri; //adjacent triangles
+  vector<tIndex> edges; //edges of the triangles
+};
+
+
+
+
 
 // for importation
 template <typename Out>
@@ -25,10 +43,12 @@ void split(const std::string& s, char delim, Out result) {
 
 class Mesh{
 public:
+  vector<Vertex> vertices;
+  vector<Edge> edges;
+  vector<Triangle> triangles;
+
   vector<Vec3f> X; //vertices position
   vector<Vec3f> P; //vertices temporary position during step
-  vector<Edge> edges;
-  vector<tIndex> triangles; //triangles
   vector<Vec3f> vel;  //velocity
   vector<Vec3f> acc; //acceleration
   vector<Real> w; //inverse of mass
@@ -64,9 +84,11 @@ public:
                 tIndex a = stol(words[1]);
                 tIndex b = stol(words[2]);
                 tIndex c = stol(words[3]);
-                triangles.push_back(a);
-                triangles.push_back(b);
-                triangles.push_back(c);
+                Triangle tri;
+                tri.A=a;
+                tri.B=b;
+                tri.C=c;
+                triangles.push_back(tri);
 
                 // Fill edges
                 if (a > b) { tempEdges.insert(make_pair(b, a));}
@@ -120,14 +142,15 @@ public:
           cout << X[i] << endl;
       }
       cout << "---TRIANGLES---" << endl;
-      for (tIndex i = 0; i < triangles.size()/3; i++) {
-          cout << triangles[3*i] <<" / "<< triangles[3 * i+1] << " / " << triangles[3 * i+2] << endl;
+      for (tIndex i = 0; i < triangles.size(); i++) {
+          cout << triangles[i].A <<" / "<< triangles[i].B << " / " << triangles[i].C << endl;
       }
+      /*
       cout << "---EDGES---" << endl;
       for (auto e: edges) {
           cout << e.A << "  " << e.B << endl;
       }
-      cout << endl;
+      cout << endl;*/
 
   }
 
@@ -155,7 +178,7 @@ public:
     myfile << textures;
     myfile << "usemtl " +mtlName << endl;
     for (int t=0;t<triangles.size()/3;t++){
-      myfile<<"f "<<triangles[3*t]<<" "<<triangles[3*t+1]<<" "<<triangles[3*t+2]<<endl;
+      myfile<<"f "<<triangles[t].A<<" "<<triangles[t].B<<" "<<triangles[t].C<<endl;
     }
     myfile.close();
 
