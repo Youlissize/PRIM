@@ -34,7 +34,7 @@ public:
   vector<Real> w; //inverse of mass
   string textures; //UV map of the texture
   string mtlFileString; //mtl File corresponding to the mesh
-
+  string mtlName; //name of the material to put in .obj file
   int test;
 
 // importation and initialization
@@ -91,6 +91,8 @@ public:
         string line;
         while (std::getline(mtlFile, line)) {
                         mtlFileString += line + "\n";
+                        if (line.substr(0,6).compare("newmtl") == 0)
+                            mtlName = line.substr(7);
             }
 
         file.close();
@@ -130,22 +132,28 @@ public:
   }
 
   void exportToOBJ(int c){
-
-    string path = "Output/frame";
+    string name = "frame";
+    string path = "Output/" + name;
     ofstream myfile;
-    if( c < 10)
-    myfile.open (path+"00"  + to_string(c) + ".obj");
-    else {if( c >= 10 && c < 100)
-    myfile.open (path+"0"  + to_string(c) + ".obj");
-    else myfile.open (path + to_string(c) + ".obj");}
-
-    myfile << "output frame" << endl;
+    if( c < 10){
+        myfile.open (path+"00"  + to_string(c) + ".obj");
+        myfile << "mtllib " + name + "00" + to_string(c) + ".stl";
+    }
+    else {if( c >= 10 && c < 100){
+            myfile.open (path+"0"  + to_string(c) + ".obj");
+            myfile << "mtllib " + name + "0" + to_string(c) + ".stl";
+        }
+        else{
+                myfile.open (path + to_string(c) + ".obj");
+                myfile << "mtllib " + name + to_string(c) + ".stl";}
+    }
+    myfile << endl << "output frame" << endl;
     for (auto x:X){
       myfile <<"v "<<x.x<<" "<<x.y<<" "<<x.z<<endl;
     }
 
     myfile << textures;
-
+    myfile << "usemtl " +mtlName << endl;
     for (int t=0;t<triangles.size()/3;t++){
       myfile<<"f "<<triangles[3*t]<<" "<<triangles[3*t+1]<<" "<<triangles[3*t+2]<<endl;
     }
