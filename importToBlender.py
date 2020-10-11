@@ -20,7 +20,9 @@ for item in obj_list:
 scene = bpy.context.scene
 name = "frame"
 objs = [obj for obj in bpy.context.visible_objects if name in obj.name]
-
+for i, obj in enumerate(objs):
+    obj.hide_set(i != ((scene.frame_current-1) % len(objs))) 
+    obj.hide_render = (i != ((scene.frame_current-1) % len(objs)))
 def ani_handler(scene):
         for i, obj in enumerate(objs):
             obj.hide_set(i != ((scene.frame_current-1) % len(objs))) 

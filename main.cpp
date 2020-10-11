@@ -24,7 +24,7 @@ typedef long int tIndex;
 
 // Objects
 vector<Mesh> meshes;
-string objectFile = "Meshes/cube.obj";       // Mesh to import
+string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 
 // simulation
 int nFrames = 20;

@@ -32,12 +32,15 @@ public:
   vector<Vec3f> vel;  //velocity
   vector<Vec3f> acc; //acceleration
   vector<Real> w; //inverse of mass
+  string textures; //UV map of the texture
+  string mtlFileString; //mtl File corresponding to the mesh
 
   int test;
 
-// importation and initialisation
+// importation and initialization
   Mesh (string FILENAME) {
     ifstream file(FILENAME);
+
     if (file.is_open()) {
         string line;
         set<pair<tIndex,tIndex>> tempEdges = set<pair<tIndex,tIndex>>();
@@ -51,6 +54,10 @@ public:
                 float y = stof(words[2]);
                 float z = stof(words[3]);
                 X.push_back(Vec3f(x, y, z));
+            }
+
+            if (words[0].compare("vt") == 0){
+                textures += line + '\n';
             }
 
             if (words[0].compare("f") == 0) {
@@ -78,7 +85,20 @@ public:
     else {
         cout << "WARNING : Failed to import " << FILENAME << endl;
     }
+    string mtlFILENAME = FILENAME.substr(0,FILENAME.length() -4) + ".mtl";
+    ifstream mtlFile(mtlFILENAME);
+        if (mtlFile.is_open()) {
+        string line;
+        while (std::getline(mtlFile, line)) {
+                        mtlFileString += line + "\n";
+            }
 
+        file.close();
+        cout << "Successfully imported " << mtlFILENAME << endl;}
+
+    else {
+        cout << "WARNING : Failed to import " << mtlFILENAME << endl;
+    }
 
     P = vector<Vec3f>(X.size());
     vel = vector<Vec3f>(X.size());
@@ -123,11 +143,23 @@ public:
     for (auto x:X){
       myfile <<"v "<<x.x<<" "<<x.y<<" "<<x.z<<endl;
     }
+
+    myfile << textures;
+
     for (int t=0;t<triangles.size()/3;t++){
       myfile<<"f "<<triangles[3*t]<<" "<<triangles[3*t+1]<<" "<<triangles[3*t+2]<<endl;
     }
     myfile.close();
 
+
+    ofstream myMtlFile;
+    if( c < 10)
+    myMtlFile.open (path+"00"  + to_string(c) + ".mtl");
+    else {if( c >= 10 && c < 100)
+    myMtlFile.open (path+"0"  + to_string(c) + ".mtl");
+    else myMtlFile.open (path + to_string(c) + ".mtl");}
+    myMtlFile << mtlFileString;
+    myMtlFile.close();
   }
 
 
