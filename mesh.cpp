@@ -14,7 +14,6 @@ struct Edge{
   tIndex A; //first vertex
   tIndex B; //other vertex
   vector<tIndex> adjTri; //adjacent triangles
-  vector<tIndex> adjEdg; //adjacent edges
 };
 
 
@@ -22,7 +21,6 @@ struct Triangle{
   tIndex A; //first vertex
   tIndex B; //second vertex
   tIndex C; //third vertex
-  vector<tIndex> adjTri; //adjacent triangles
   vector<tIndex> edges; //edges of the triangles
 };
 
@@ -38,6 +36,32 @@ void split(const std::string& s, char delim, Out result) {
     while (std::getline(iss, item, delim)) {
         *result++ = item;
     }
+}
+int compareEdges(Edge e1,Edge e2){  //compare two edges (assuming that edge.A<edge.B)
+  if (e1.A<e2.A) { return -1;}
+  if (e1.A==e2.A) {
+    if (e1.B<e2.B) { return -1;}
+    if (e1.B==e2.B) { return 0;}
+    else { return 1;}
+    }
+  return 1;
+}
+int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e , dichotomic search
+  int mid,left=0;
+  int right = edges.size();
+  while(left<right){
+    mid = left + (right - left)/2;
+    int res = compareEdges(e,edges[mid]);
+    if (res > 0){
+      left=mid+1;
+    }
+    else if (res<0) {
+      right = mid;
+    }
+    else { return mid; }
+  }
+  cout<<"Edge not found"<<endl;
+  return -1;
 }
 
 
@@ -55,7 +79,6 @@ public:
   string textures; //UV map of the texture
   string mtlFileString; //mtl File corresponding to the mesh
   string mtlName; //name of the material to put in .obj file
-  int test;
 
 // importation and initialization
   Mesh (string FILENAME) {
@@ -74,6 +97,10 @@ public:
                 float y = stof(words[2]);
                 float z = stof(words[3]);
                 X.push_back(Vec3f(x, y, z));
+                Vertex v;
+                v.adjEdg = vector<tIndex>();
+                v.adjTri = vector<tIndex>();
+                vertices.push_back(v);
             }
 
             if (words[0].compare("vt") == 0){
@@ -81,13 +108,14 @@ public:
             }
 
             if (words[0].compare("f") == 0) {
-                tIndex a = stol(words[1]);
-                tIndex b = stol(words[2]);
-                tIndex c = stol(words[3]);
+                tIndex a = stol(words[1])-1;
+                tIndex b = stol(words[2])-1;
+                tIndex c = stol(words[3])-1;
                 Triangle tri;
                 tri.A=a;
                 tri.B=b;
                 tri.C=c;
+                tri.edges = vector<tIndex>();
                 triangles.push_back(tri);
 
                 // Fill edges
@@ -101,6 +129,61 @@ public:
                 else { tempEdges.insert(make_pair(c, a)); }
             }
         }
+
+        // Fill all data of the mesh
+
+        P = vector<Vec3f>(X.size());
+        vel = vector<Vec3f>(X.size());
+        acc = vector<Vec3f>(X.size());
+        w = vector<Real>(X.size(),1); // Mass set by default at 1 for every vertex
+
+        for (auto& e:tempEdges){
+            Edge edge;
+            edge.A=e.first;
+            edge.B=e.second;
+            edge.adjTri = vector<tIndex>();
+            edges.push_back(edge);
+        }
+
+        //Fill edge.adjTri - edges is here supposed to be sorted
+        for (tIndex i=0; i<triangles.size(); i++) {
+          Triangle t = triangles[i];
+
+          Edge e = {.A=min(t.A,t.B), .B=max(t.A,t.B)};
+          int pos = findEdge(edges, e);
+          edges[pos].adjTri.push_back(i);
+
+          e = {.A=min(t.C,t.B), .B=max(t.C,t.B)};
+          pos = findEdge(edges, e);
+          edges[pos].adjTri.push_back(i);
+
+          e = {.A=min(t.C,t.A), .B=max(t.C,t.A)};
+          pos = findEdge(edges, e);
+          edges[pos].adjTri.push_back(i);
+
+        }
+
+        //Fill triangle.edges
+        for(tIndex i=0; i<edges.size(); i++){
+          for(tIndex tri : edges[i].adjTri) {
+            triangles[tri].edges.push_back(i);
+          }
+        }
+
+        //Fill Vertices
+
+        for(tIndex i=0; i<edges.size(); i++){
+          vertices[edges[i].A].adjEdg.push_back(i);
+          vertices[edges[i].B].adjEdg.push_back(i);
+        }
+        for(tIndex i=0; i<triangles.size(); i++){
+          vertices[triangles[i].A].adjTri.push_back(i);
+          vertices[triangles[i].B].adjTri.push_back(i);
+          vertices[triangles[i].C].adjTri.push_back(i);
+        }
+
+
+
         file.close();
         cout << "Successfully imported " << FILENAME << endl;
     }
@@ -124,12 +207,7 @@ public:
         cout << "WARNING : Failed to import " << mtlFILENAME << endl;
     }
 
-    P = vector<Vec3f>(X.size());
-    vel = vector<Vec3f>(X.size());
-    acc = vector<Vec3f>(X.size());
-    w = vector<Real>(X.size(),1); // Mass set by default at 1 for every vertex
-    this->test = 1000;
-    // TODO : edges
+
 
   }
 
@@ -145,12 +223,11 @@ public:
       for (tIndex i = 0; i < triangles.size(); i++) {
           cout << triangles[i].A <<" / "<< triangles[i].B << " / " << triangles[i].C << endl;
       }
-      /*
       cout << "---EDGES---" << endl;
       for (auto e: edges) {
           cout << e.A << "  " << e.B << endl;
       }
-      cout << endl;*/
+      cout << endl;
 
   }
 
