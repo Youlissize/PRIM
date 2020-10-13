@@ -29,13 +29,15 @@ string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 // simulation
 int nFrames = 20;
 Real _dt = 0.05;                     // time step
+int solverIteration = 3;
 
 // Coefficients
 Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
+// Constraints
+vector<LengthConstraint> lengthConstraints;
 
 
-int solverIteration = 3;
 
 // END GLOBAL VARIABLES
 
@@ -88,9 +90,8 @@ public:
     for(auto& mesh:meshes) {
       for (tIndex i = 0; i < mesh.X.size(); ++i) {
         mesh.acc[i]= _g;
-        //cout<<mesh.acc[i];
       }
-      //mesh.acc = vector<Vec3f>(mesh.X.size(), _g);
+
     }
 
 
@@ -99,8 +100,8 @@ public:
 //  #pragma omp parallel for
       for (tIndex i = 0; i < mesh.X.size(); ++i) {
           mesh.vel[i] += _dt * mesh.w[i] * mesh.acc[i];   // simple forward Euler
-          //cout<<mesh.acc[i];
       }
+
     }
 
     dampVelocities();
@@ -144,7 +145,9 @@ private:
     }
 
   void projectConstraints() {
-      // TODO
+      for (auto lc: lengthConstraints){
+        lc.project();
+      }
   }
 
   void velocityUpdate() {
@@ -221,6 +224,7 @@ int main(int argc, char **argv) {
 
   cout << "State after " << nFrames << " frames : " << endl;
   meshes[0].printVertexAndTrianglesAndEdges();
+  
 
   return EXIT_SUCCESS;
 }

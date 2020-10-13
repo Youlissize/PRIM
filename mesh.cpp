@@ -6,6 +6,11 @@ using namespace std;
 
 
 struct Vertex{
+/*  Vec3f X;  // This is maybe better
+  Vec3f P;
+  float w;
+  Vec3f vel;
+  Vec3f acc;*/
   vector<tIndex> adjEdg; //adjacent edges
   vector<tIndex> adjTri; //adjacent triangles
 };
@@ -76,6 +81,7 @@ public:
   vector<Vec3f> vel;  //velocity
   vector<Vec3f> acc; //acceleration
   vector<Real> w; //inverse of mass
+
   string textures; //UV map of the texture
   string mtlFileString; //mtl File corresponding to the mesh
   string mtlName; //name of the material to put in .obj file
