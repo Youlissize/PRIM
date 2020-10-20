@@ -35,8 +35,8 @@ int solverIteration = 3;
 Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
 // Constraints
-vector<LengthConstraint> lengthConstraints;
-
+vector<LengthConstraint> lengthConstraints =  vector<LengthConstraint>();
+vector<FixConstraint> fixConstraints = vector<FixConstraint>();
 
 
 // END GLOBAL VARIABLES
@@ -78,6 +78,7 @@ public:
       //Import meshes
       meshes = vector<Mesh>();
       meshes.push_back(Mesh(objectFile));
+      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));
   }
 
   int c = 0;
@@ -145,6 +146,9 @@ private:
     }
 
   void projectConstraints() {
+    for (auto fc: fixConstraints){
+      fc.project();
+    }
       for (auto lc: lengthConstraints){
         lc.project();
       }
