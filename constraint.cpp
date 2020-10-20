@@ -17,23 +17,25 @@ public:
   Vertex * A;
   Vertex * B;
   float initialLength;
+  float k;
 
   void project() {
     float d = (A->P - B->P).length();
-
+    if((A->w + B->w)>0){
     Vec3f dpA = -(A->w / (A->w + B->w)) * (d-initialLength) * (A->P - B->P) / d;
     Vec3f dpB = (B->w / (A->w + B->w)) * (d-initialLength) * (A->P - B->P) / d;
 
-    A->P += k_rigidity*dpA;
-    B->P += k_rigidity*dpB;
+    A->P += k*dpA;
+    B->P += k*dpB;}
 
 
     }
 
   //constructor
-  LengthConstraint(Vertex* vA, Vertex* vB){
+  LengthConstraint(Vertex* vA, Vertex* vB, float k_){
     A = vA;
     B = vB;
+    k = k_;
     initialLength = (A->X - B->X).length();
 
   }
