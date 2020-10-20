@@ -25,14 +25,15 @@ typedef long int tIndex;
 
 // Objects
 vector<Mesh> meshes;
-string objectFile = "Meshes/blueCube.obj";       // Mesh to import
+string objectFile = "Meshes/plane.obj";       // Mesh to import
 
 // simulation
-int nFrames = 20;
+int nFrames = 150;
 Real _dt = 0.05;                     // time step
-int solverIteration = 3;
-float rigidity = 0.8; //rigidity
-float k_rigidity = 1-pow((1-rigidity),1/solverIteration);
+int solverIteration = 7;
+float rigidity = 1; //rigidity
+float k_rigidity = 1.f-pow((1.f-rigidity),1.f/solverIteration);
+
 
 // Coefficients
 Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
@@ -81,7 +82,14 @@ public:
       //Import meshes
       meshes = vector<Mesh>();
       meshes.push_back(Mesh(objectFile));
-      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));
+      for (int i =0; i<1; ++i)
+      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[4]));
+            fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));
+
+      cout << k_rigidity << endl;
+      for (auto e : meshes[0].edges){
+        lengthConstraints.push_back(LengthConstraint(&meshes[0].vertices[e.A],&meshes[0].vertices[e.B],k_rigidity));
+      }
   }
 
   int c = 0;
@@ -103,7 +111,7 @@ public:
     for(auto& mesh:meshes) {
 //  #pragma omp parallel for
       for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
-          mesh.vertices[i].vel += _dt * mesh.vertices[i].w * mesh.vertices[i].acc;   // simple forward Euler
+          mesh.vertices[i].vel += _dt * 1.f/mesh.vertices[i].w * mesh.vertices[i].acc;   // simple forward Euler
       }
 
     }

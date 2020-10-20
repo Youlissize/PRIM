@@ -102,7 +102,7 @@ public:
                 float x = stof(words[1]);
                 float y = stof(words[2]);
                 float z = stof(words[3]);
-                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
+                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),10,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
 /*                Vertex v;
                 v.adjEdg = vector<tIndex>();
                 v.adjTri = vector<tIndex>();
