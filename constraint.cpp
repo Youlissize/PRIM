@@ -26,12 +26,14 @@ public:
 
     cout<<"Resolved!"<<endl;
 
-    //constructor
-    LengthConstraint(Vertex* vA, Vertex* vB){
-      A = vA;
-      B = vB;
-      initialLength = (A->X - B->X).length();
     }
+
+  //constructor
+  LengthConstraint(Vertex* vA, Vertex* vB){
+    A = vA;
+    B = vB;
+    initialLength = (A->X - B->X).length();
+
   }
 };
 
