@@ -261,8 +261,8 @@ public:
 
     myfile << textures;
     myfile << "usemtl " +mtlName << endl;
-    for (int t=0;t<triangles.size()/3;t++){
-      myfile<<"f "<<triangles[t].A<<" "<<triangles[t].B<<" "<<triangles[t].C<<endl;
+    for (int t=0;t<triangles.size();t++){
+      myfile<<"f "<<triangles[t].A +1<<" "<<triangles[t].B+1<<" "<<triangles[t].C +1<<endl;
     }
     myfile.close();
 
