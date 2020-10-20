@@ -23,7 +23,8 @@ public:
 
     Vec3f dpA = -(A->w / (A->w + B->w)) * (d-initialLength) * (A->P - B->P) / d;
     Vec3f dpB = (B->w / (A->w + B->w)) * (d-initialLength) * (A->P - B->P) / d;
-
+    cout<<"Rigidity = "<<k_rigidity<<endl;
+    cout<<"nb It = "<<solverIteration<<endl;
     A->P += k_rigidity*dpA;
     B->P += k_rigidity*dpB;
 
@@ -56,6 +57,34 @@ public:
     initialPos = V->X;
   }
 };
+
+class BendConstraint : public Constraint {
+public:
+  Vertex* p1,p2,p3,p4; // p1 and p2 are centrale vertices
+  float phi0;
+
+  void project() {
+
+  }
+
+  //constructor
+  BendConstraint(Vertex* v1,Vertex* v2,Vertex* v3,Vertex* v4){
+    p1=v1;
+    p2=v2;
+    p3=v3;
+    p4=v4;
+
+    // compute phi0
+
+
+
+  }
+
+
+
+
+
+}
 
 
 
