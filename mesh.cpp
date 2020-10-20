@@ -6,11 +6,11 @@ using namespace std;
 
 
 struct Vertex{
-/*  Vec3f X;  // This is maybe better
+  Vec3f X;
   Vec3f P;
   float w;
   Vec3f vel;
-  Vec3f acc;*/
+  Vec3f acc;
   vector<tIndex> adjEdg; //adjacent edges
   vector<tIndex> adjTri; //adjacent triangles
 };
@@ -76,11 +76,11 @@ public:
   vector<Edge> edges;
   vector<Triangle> triangles;
 
-  vector<Vec3f> X; //vertices position
+ /* vector<Vec3f> X; //vertices position
   vector<Vec3f> P; //vertices temporary position during step
   vector<Vec3f> vel;  //velocity
   vector<Vec3f> acc; //acceleration
-  vector<Real> w; //inverse of mass
+  vector<Real> w; //inverse of mass */
 
   string textures; //UV map of the texture
   string mtlFileString; //mtl File corresponding to the mesh
@@ -102,11 +102,11 @@ public:
                 float x = stof(words[1]);
                 float y = stof(words[2]);
                 float z = stof(words[3]);
-                X.push_back(Vec3f(x, y, z));
-                Vertex v;
+                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
+/*                Vertex v;
                 v.adjEdg = vector<tIndex>();
                 v.adjTri = vector<tIndex>();
-                vertices.push_back(v);
+                vertices.push_back(v);*/
             }
 
             if (words[0].compare("vt") == 0){
@@ -138,10 +138,10 @@ public:
 
         // Fill all data of the mesh
 
-        P = vector<Vec3f>(X.size());
+/*        P = vector<Vec3f>(X.size());
         vel = vector<Vec3f>(X.size());
         acc = vector<Vec3f>(X.size());
-        w = vector<Real>(X.size(),1); // Mass set by default at 1 for every vertex
+        w = vector<Real>(X.size(),1); */ // Mass set by default at 1 for every vertex
 
         for (auto& e:tempEdges){
             Edge edge;
@@ -222,8 +222,8 @@ public:
 
       cout << endl;
       cout << "---VERTICES---" << endl;
-      for (tIndex i = 0; i < X.size(); i++) {
-          cout << X[i] << endl;
+      for (tIndex i = 0; i < vertices.size(); i++) {
+          cout << vertices[i].X << endl;
       }
       cout << "---TRIANGLES---" << endl;
       for (tIndex i = 0; i < triangles.size(); i++) {
@@ -254,7 +254,8 @@ public:
                 myfile << "mtllib " + name + to_string(c) + ".stl";}
     }
     myfile << endl << "output frame" << endl;
-    for (auto x:X){
+    for (auto v:vertices){
+      auto x= v.X;
       myfile <<"v "<<x.x<<" "<<x.y<<" "<<x.z<<endl;
     }
 

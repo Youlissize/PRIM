@@ -88,8 +88,8 @@ public:
     // apply gravity
 
     for(auto& mesh:meshes) {
-      for (tIndex i = 0; i < mesh.X.size(); ++i) {
-        mesh.acc[i]= _g;
+      for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
+        mesh.vertices[i].acc = _g;
       }
 
     }
@@ -98,8 +98,8 @@ public:
     // update Velocity
     for(auto& mesh:meshes) {
 //  #pragma omp parallel for
-      for (tIndex i = 0; i < mesh.X.size(); ++i) {
-          mesh.vel[i] += _dt * mesh.w[i] * mesh.acc[i];   // simple forward Euler
+      for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
+          mesh.vertices[i].vel += _dt * mesh.vertices[i].w * mesh.vertices[i].acc;   // simple forward Euler
       }
 
     }
@@ -109,8 +109,8 @@ public:
     // update Temporary Position
     for(auto& mesh:meshes) {
   #pragma omp parallel for
-      for (tIndex i = 0; i < mesh.X.size(); ++i) {
-          mesh.P[i] = mesh.X[i] + _dt * mesh.vel[i];
+      for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
+          mesh.vertices[i].P = mesh.vertices[i].X + _dt * mesh.vertices[i].vel;
       }
     }
 
@@ -121,9 +121,9 @@ public:
     }
 
     for(auto& mesh:meshes) {
-      for (tIndex i = 0; i < mesh.X.size(); ++i) {
-          mesh.vel[i] = (mesh.P[i] - mesh.X[i]) / _dt;
-          mesh.X[i] = mesh.P[i];
+      for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
+          mesh.vertices[i].vel = (mesh.vertices[i].P - mesh.vertices[i].X) / _dt;
+          mesh.vertices[i].X = mesh.vertices[i].P;
       }
     }
 
@@ -224,7 +224,7 @@ int main(int argc, char **argv) {
 
   cout << "State after " << nFrames << " frames : " << endl;
   meshes[0].printVertexAndTrianglesAndEdges();
-  
+
 
   return EXIT_SUCCESS;
 }
