@@ -1,7 +1,10 @@
 #ifndef CONSTRAINT
 #define CONSTRAINT
 #include "vector3.cpp"
+#include "common.h"
 using namespace std;
+
+
 
 class Constraint{
 public:
@@ -21,10 +24,9 @@ public:
     Vec3f dpA = -(A->w / (A->w + B->w)) * (d-initialLength) * (A->P - B->P) / d;
     Vec3f dpB = (B->w / (A->w + B->w)) * (d-initialLength) * (A->P - B->P) / d;
 
-    A->P += dpA;
-    B->P += dpB;
+    A->P += k_rigidity*dpA;
+    B->P += k_rigidity*dpB;
 
-    cout<<"Resolved!"<<endl;
 
     }
 
@@ -45,8 +47,6 @@ public:
 
   void project() {
     V->P = initialPos;
-
-    cout<<"Resolved!"<<endl;
   }
 
   //constructor

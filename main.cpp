@@ -13,6 +13,7 @@
 #include "vector3.cpp"
 #include "constraint.cpp"
 
+
 using namespace std;
 typedef float Real;
 typedef long int tIndex;
@@ -30,6 +31,8 @@ string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 int nFrames = 20;
 Real _dt = 0.05;                     // time step
 int solverIteration = 3;
+float rigidity = 0.8; //rigidity
+float k_rigidity = 1-pow((1-rigidity),1/solverIteration);
 
 // Coefficients
 Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
