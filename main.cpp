@@ -25,13 +25,13 @@ typedef long int tIndex;
 
 // Objects
 vector<Mesh> meshes;
-string objectFile = "Meshes/plane.obj";       // Mesh to import
+string objectFile = "Meshes/sphere.obj";       // Mesh to import
 
 // simulation
 int nFrames = 150;
 Real _dt = 0.05;                     // time step
 int solverIteration = 7;
-float rigidity = 1; //rigidity
+float rigidity = 0.99; //rigidity
 float k_rigidity = 1.f-pow((1.f-rigidity),1.f/solverIteration);
 
 
@@ -41,7 +41,7 @@ Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 // Constraints
 vector<LengthConstraint> lengthConstraints =  vector<LengthConstraint>();
 vector<FixConstraint> fixConstraints = vector<FixConstraint>();
-
+vector<BendConstraint> bendConstraints = vector<BendConstraint>();
 
 // END GLOBAL VARIABLES
 
@@ -86,9 +86,26 @@ public:
       fixConstraints.push_back(FixConstraint(&meshes[0].vertices[4]));
             fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));
 
-      cout << k_rigidity << endl;
       for (auto e : meshes[0].edges){
         lengthConstraints.push_back(LengthConstraint(&meshes[0].vertices[e.A],&meshes[0].vertices[e.B],k_rigidity));
+      }
+
+      for (auto e : meshes[0].edges){
+        if (e.adjTri.size() == 2) {
+          Vertex * v3;
+          Vertex * v4; // The two points that are not on the edge
+          Triangle t1 = meshes[0].triangles[e.adjTri[0]];
+          if (t1.A!=e.A && t1.A!=e.B){ v3 = &meshes[0].vertices[t1.A]; }
+          else if (t1.B!=e.A && t1.B!=e.B){ v3 = &meshes[0].vertices[t1.B]; }
+          else if (t1.C!=e.A && t1.C!=e.B){ v3 = &meshes[0].vertices[t1.C]; }
+
+          Triangle t2 = meshes[0].triangles[e.adjTri[1]];
+          if (t2.A!=e.A && t2.A!=e.B){ v4 = &meshes[0].vertices[t2.A]; }
+          else if (t2.B!=e.A && t2.B!=e.B){ v4 = &meshes[0].vertices[t2.B]; }
+          else if (t2.C!=e.A && t2.C!=e.B){ v4 = &meshes[0].vertices[t2.C]; }
+
+          bendConstraints.push_back(BendConstraint(&meshes[0].vertices[e.A],&meshes[0].vertices[e.B],v3,v4));
+        }
       }
   }
 
@@ -98,7 +115,6 @@ public:
     cout << "." << flush;
 
     // apply gravity
-
     for(auto& mesh:meshes) {
       for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
         mesh.vertices[i].acc = _g;
@@ -111,9 +127,8 @@ public:
     for(auto& mesh:meshes) {
 //  #pragma omp parallel for
       for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
-          mesh.vertices[i].vel += _dt * 1.f/mesh.vertices[i].w * mesh.vertices[i].acc;   // simple forward Euler
+          mesh.vertices[i].vel += _dt * (1.f/mesh.vertices[i].w) * mesh.vertices[i].acc;   // simple forward Euler
       }
-
     }
 
     dampVelocities();
@@ -160,9 +175,12 @@ private:
     for (auto fc: fixConstraints){
       fc.project();
     }
-      for (auto lc: lengthConstraints){
-        lc.project();
-      }
+    for (auto lc: lengthConstraints){
+      lc.project();
+    }
+    for (auto bc: bendConstraints){
+      bc.project();
+    }
   }
 
   void velocityUpdate() {
