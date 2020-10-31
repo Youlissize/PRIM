@@ -30,9 +30,11 @@ string objectFile = "Meshes/sphere.obj";       // Mesh to import
 // simulation
 int nFrames = 150;
 Real _dt = 0.05;                     // time step
-int solverIteration = 7;
-float rigidity = 0.99; //rigidity
-float k_rigidity = 1.f-pow((1.f-rigidity),1.f/solverIteration);
+int solverIteration = 15;
+float streching = 0.9; //streching
+float k_streching = 1.f-pow((1.f-streching),1.f/solverIteration);
+float bending = 0.8; //bending
+float k_bending = 1.f-pow((1.f-bending),1.f/solverIteration);
 
 
 // Coefficients
@@ -87,7 +89,7 @@ public:
             fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));
 
       for (auto e : meshes[0].edges){
-        lengthConstraints.push_back(LengthConstraint(&meshes[0].vertices[e.A],&meshes[0].vertices[e.B],k_rigidity));
+        lengthConstraints.push_back(LengthConstraint(&meshes[0].vertices[e.A],&meshes[0].vertices[e.B],k_streching));
       }
 
       for (auto e : meshes[0].edges){
@@ -104,7 +106,7 @@ public:
           else if (t2.B!=e.A && t2.B!=e.B){ v4 = &meshes[0].vertices[t2.B]; }
           else if (t2.C!=e.A && t2.C!=e.B){ v4 = &meshes[0].vertices[t2.C]; }
 
-          bendConstraints.push_back(BendConstraint(&meshes[0].vertices[e.A],&meshes[0].vertices[e.B],v3,v4));
+          bendConstraints.push_back(BendConstraint(&meshes[0].vertices[e.A],&meshes[0].vertices[e.B],v3,v4,k_bending));
         }
       }
   }
@@ -248,7 +250,7 @@ int main(int argc, char **argv) {
   Solver solver;
   solver.initScene();
 
-  meshes[0].printVertexAndTrianglesAndEdges();
+  //meshes[0].printVertexAndTrianglesAndEdges();
 
   for (int i = 0; i < nFrames; i++) {
       solver.update();
@@ -256,7 +258,7 @@ int main(int argc, char **argv) {
   }
 
   cout << "State after " << nFrames << " frames : " << endl;
-  meshes[0].printVertexAndTrianglesAndEdges();
+  //meshes[0].printVertexAndTrianglesAndEdges();
 
 
   return EXIT_SUCCESS;
