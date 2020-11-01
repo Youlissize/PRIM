@@ -25,8 +25,9 @@ typedef long int tIndex;
 
 // Objects
 vector<Mesh> meshes;
+Scene* scene = new Scene();
 string objectFile = "Meshes/cube.obj";       // Mesh to import
-string floorFile = "Meshes/floor.obj";
+string floorFile = "Meshes/texturedSphere.obj";
 
 // simulation
 int nFrames = 150;
@@ -86,6 +87,7 @@ public:
       meshes = vector<Mesh>();
       meshes.push_back(Mesh(objectFile,true));
       meshes.push_back(Mesh(floorFile,false));
+      scene->setMeshes(meshes);
       for (int i =0; i<1; ++i)
       fixConstraints.push_back(FixConstraint(&meshes[0].vertices[4]));
       fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));
@@ -202,9 +204,7 @@ private:
   }
 
   void writeOBJFile(int c){
-    for(auto& mesh: meshes) {
-      mesh.exportToOBJ(c);
-    }
+    scene->exportToOBJ(c);
   }
 
   //Compute isovalues to know if we are in or out an object
@@ -266,9 +266,9 @@ int main(int argc, char **argv) {
 
   for (int i = 0; i < nFrames; i++) {
       solver.update();
-      meshes[0].exportToOBJ(i);
+      scene->exportToOBJ(i);
   }
-
+scene->writeMTL();
   cout << "State after " << nFrames << " frames : " << endl;
   //meshes[0].printVertexAndTrianglesAndEdges();
 

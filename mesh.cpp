@@ -73,6 +73,9 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
 
 class Mesh{
 public:
+  long meshVertices= 0;
+  long meshTextures= 0;
+  long meshNormals = 0;
   string meshName;
   vector<Vertex> vertices;
   vector<Edge> edges;
@@ -109,14 +112,24 @@ public:
                 float y = stof(words[2]);
                 float z = stof(words[3]);
                 vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),10,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
+                meshVertices++;
 /*                Vertex v;
                 v.adjEdg = vector<tIndex>();
                 v.adjTri = vector<tIndex>();
                 vertices.push_back(v);*/
             }
 
-            if (words[0].compare("vt") == 0 || words[0].compare("vn") == 0 || words[0].compare("usemtl") == 0){
+            if(words[0].compare("usemtl") == 0){
                 textures += line + '\n';
+            }
+             if (words[0].compare("vn") == 0){
+                textures += line + '\n';
+                meshNormals++;
+            }
+
+            if (words[0].compare("vt") == 0){
+                textures += line + '\n';
+                meshTextures++;
             }
 
             if (words[0].compare("f") == 0) {
@@ -149,6 +162,7 @@ public:
                 else { tempEdges.insert(make_pair(c, a)); }
             }
         }
+
 
         // Fill all data of the mesh
 
@@ -190,6 +204,7 @@ public:
           }
         }
 
+
         //Fill Vertices
 
         for(tIndex i=0; i<edges.size(); i++){
@@ -201,7 +216,6 @@ public:
           vertices[triangles[i].B].adjTri.push_back(i);
           vertices[triangles[i].C].adjTri.push_back(i);
         }
-
 
 
         file.close();
@@ -216,17 +230,9 @@ public:
         string line;
         while (std::getline(mtlFile, line)) {
                         mtlFileString += line + "\n";
-                        if (line.substr(0,6).compare("newmtl") == 0)
-                            mtlName = line.substr(7);
             }
 
         file.close();
-        ofstream myMtlFile;
-        string name = "frame";
-        string path = "Output/" + name;
-        myMtlFile.open (path+ ".mtl");
-        myMtlFile << mtlFileString;
-        myMtlFile.close();
         cout << "Successfully imported " << mtlFILENAME << endl;}
 
     else {
@@ -257,41 +263,26 @@ public:
 
   }
 
-  void exportToOBJ(int c){
-    string name = "frame";
-    string path = "Output/" + name;
-    ofstream myfile;
-    if( c < 10){
-        myfile.open (path+"00"  + to_string(c) + ".obj");
-        myfile << "mtllib " + name  + ".mtl";
-    }
-    else {if( c >= 10 && c < 100){
-            myfile.open (path+"0"  + to_string(c) + ".obj");
-            myfile << "mtllib " + name  + ".mtl";
-        }
-        else{
-                myfile.open (path + to_string(c) + ".obj");
-                myfile << "mtllib " + name + ".mtl";}
-    }
-    myfile << endl << "o " << meshName << endl;
+  string exportToOBJ(long totalVertices, long totalTextures, long totalNormals){
+    string myfile = "";
+    myfile +=  "o " + meshName + '\n';
     for (auto v:vertices){
       auto x= v.X;
-      myfile <<"v "<<x.x<<" "<<x.y<<" "<<x.z<<endl;
+      myfile = myfile + "v "+to_string(x.x) +" " + to_string(x.y) + " " + to_string(x.z) + '\n';
     }
-
-    myfile << textures;
+    myfile += textures;
     for (int t=0;t<triangles.size();t++){
         int x = trianglesTextures[t][0];
         int y = trianglesNormals[t][0];
-        myfile<<"f "<<triangles[t].A +1<< "/" <<to_string(x) << "/"<< to_string(y) << " ";
+        myfile+= "f " + to_string(triangles[t].A+1+totalVertices) +  "/"  + to_string(x+totalTextures) + "/" + to_string(y+totalNormals) + " ";
         x = trianglesTextures[t][1];
         y = trianglesNormals[t][1];
-        myfile<< triangles[t].B +1<< "/" <<to_string(x) << "/"<< to_string(y) << " ";
+        myfile+= to_string(triangles[t].B+1+totalVertices) +  "/" + to_string(x+totalTextures) + "/" + to_string(y+totalNormals) + " ";
         x = trianglesTextures[t][2];
         y = trianglesNormals[t][2];
-        myfile << triangles[t].C +1<< "/" <<to_string(x) << "/"<< to_string(y) << endl;
+        myfile += to_string(triangles[t].C+1+totalVertices) + "/" + to_string(x+totalTextures) + "/" + to_string(y+totalNormals) + '\n';
     }
-    myfile.close();
+    return myfile;
 
 
 
