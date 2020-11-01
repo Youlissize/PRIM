@@ -2,6 +2,7 @@
 #define MESH
 #include "vector3.cpp"
 #include <set>
+#include <string>
 using namespace std;
 
 
@@ -72,24 +73,29 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
 
 class Mesh{
 public:
+  string meshName;
   vector<Vertex> vertices;
   vector<Edge> edges;
   vector<Triangle> triangles;
+  vector<vector<int>> trianglesTextures;
+  vector<vector<int>> trianglesNormals;
 
  /* vector<Vec3f> X; //vertices position
   vector<Vec3f> P; //vertices temporary position during step
   vector<Vec3f> vel;  //velocity
   vector<Vec3f> acc; //acceleration
   vector<Real> w; //inverse of mass */
+  bool isDeformable;
 
   string textures; //UV map of the texture
   string mtlFileString; //mtl File corresponding to the mesh
   string mtlName; //name of the material to put in .obj file
 
 // importation and initialization
-  Mesh (string FILENAME) {
+  Mesh (string FILENAME,bool isDeformable) {
+    this->isDeformable = isDeformable;
     ifstream file(FILENAME);
-
+    this-> meshName = FILENAME.substr(0,FILENAME.length() -4).substr(7);
     if (file.is_open()) {
         string line;
         set<pair<tIndex,tIndex>> tempEdges = set<pair<tIndex,tIndex>>();
@@ -109,20 +115,28 @@ public:
                 vertices.push_back(v);*/
             }
 
-            if (words[0].compare("vt") == 0){
+            if (words[0].compare("vt") == 0 || words[0].compare("vn") == 0 || words[0].compare("usemtl") == 0){
                 textures += line + '\n';
             }
 
             if (words[0].compare("f") == 0) {
-                tIndex a = stol(words[1])-1;
-                tIndex b = stol(words[2])-1;
-                tIndex c = stol(words[3])-1;
+                vector<string> vertex1, vertex2, vertex3;
+                split(words[1],'/',back_inserter(vertex1));
+                split(words[2],'/',back_inserter(vertex2));
+                split(words[3],'/',back_inserter(vertex3));
+                tIndex a = stol(vertex1[0])-1;
+                tIndex b = stol(vertex2[0])-1;
+                tIndex c = stol(vertex3[0])-1;
                 Triangle tri;
                 tri.A=a;
                 tri.B=b;
                 tri.C=c;
                 tri.edges = vector<tIndex>();
                 triangles.push_back(tri);
+                vector<int> tex{stol(vertex1[1]),stol(vertex2[1]),stol(vertex3[1])};
+                vector<int> norm{stol(vertex1[2]),stol(vertex2[2]),stol(vertex3[2])};
+                trianglesTextures.push_back(tex);
+                trianglesNormals.push_back(norm);
 
                 // Fill edges
                 if (a > b) { tempEdges.insert(make_pair(b, a));}
@@ -259,16 +273,23 @@ public:
                 myfile.open (path + to_string(c) + ".obj");
                 myfile << "mtllib " + name + ".mtl";}
     }
-    myfile << endl << "output frame" << endl;
+    myfile << endl << "o " << meshName << endl;
     for (auto v:vertices){
       auto x= v.X;
       myfile <<"v "<<x.x<<" "<<x.y<<" "<<x.z<<endl;
     }
 
     myfile << textures;
-    myfile << "usemtl " +mtlName << endl;
     for (int t=0;t<triangles.size();t++){
-      myfile<<"f "<<triangles[t].A +1<<" "<<triangles[t].B+1<<" "<<triangles[t].C +1<<endl;
+        int x = trianglesTextures[t][0];
+        int y = trianglesNormals[t][0];
+        myfile<<"f "<<triangles[t].A +1<< "/" <<to_string(x) << "/"<< to_string(y) << " ";
+        x = trianglesTextures[t][1];
+        y = trianglesNormals[t][1];
+        myfile<< triangles[t].B +1<< "/" <<to_string(x) << "/"<< to_string(y) << " ";
+        x = trianglesTextures[t][2];
+        y = trianglesNormals[t][2];
+        myfile << triangles[t].C +1<< "/" <<to_string(x) << "/"<< to_string(y) << endl;
     }
     myfile.close();
 
