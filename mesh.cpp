@@ -207,6 +207,12 @@ public:
             }
 
         file.close();
+        ofstream myMtlFile;
+        string name = "frame";
+        string path = "Output/" + name;
+        myMtlFile.open (path+ ".mtl");
+        myMtlFile << mtlFileString;
+        myMtlFile.close();
         cout << "Successfully imported " << mtlFILENAME << endl;}
 
     else {
@@ -243,15 +249,15 @@ public:
     ofstream myfile;
     if( c < 10){
         myfile.open (path+"00"  + to_string(c) + ".obj");
-        myfile << "mtllib " + name + "00" + to_string(c) + ".stl";
+        myfile << "mtllib " + name  + ".mtl";
     }
     else {if( c >= 10 && c < 100){
             myfile.open (path+"0"  + to_string(c) + ".obj");
-            myfile << "mtllib " + name + "0" + to_string(c) + ".stl";
+            myfile << "mtllib " + name  + ".mtl";
         }
         else{
                 myfile.open (path + to_string(c) + ".obj");
-                myfile << "mtllib " + name + to_string(c) + ".stl";}
+                myfile << "mtllib " + name + ".mtl";}
     }
     myfile << endl << "output frame" << endl;
     for (auto v:vertices){
@@ -267,14 +273,7 @@ public:
     myfile.close();
 
 
-    ofstream myMtlFile;
-    if( c < 10)
-    myMtlFile.open (path+"00"  + to_string(c) + ".mtl");
-    else {if( c >= 10 && c < 100)
-    myMtlFile.open (path+"0"  + to_string(c) + ".mtl");
-    else myMtlFile.open (path + to_string(c) + ".mtl");}
-    myMtlFile << mtlFileString;
-    myMtlFile.close();
+
   }
 
 
