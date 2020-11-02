@@ -108,11 +108,11 @@ public:
 
 
         if(L>100){
-          cout<<"Q : "<<q1<<" / "<<q2<<" / "<<q3<<" / "<<q4<<" / "<<endl;
+      /*    cout<<"Q : "<<q1<<" / "<<q2<<" / "<<q3<<" / "<<q4<<" / "<<endl;
           cout<<length23<<" -- "<<length24<<endl;
           cout<<" d = "<<d<<endl;
           cout<<sqrt(1-d*d)<<"  //  "<<(acos(d)-phi0)<<endl;
-          cout<<"L = "<<L<<endl;
+          cout<<"L = "<<L<<endl;*/
         }
 
         p1->P += kb * p1->w * L * q1;
@@ -151,7 +151,31 @@ public:
 
 
 };
+class CollisionConstraint : public Constraint{
+public:
+  float k_bouncing;
+  Vertex* V;
+  Vec3f normal;
+  Vec3f collisionPoint;
+  Vec3f originalDirection;
+  Vec3f newDirection;
 
+  void project() {
+    V->P = V->X + k_bouncing*(collisionPoint - V->P).length()*newDirection;
+
+
+  }
+
+  //constructor
+  CollisionConstraint(Vertex* vertex,Vec3f collisionPoint, Vertex t1, Vertex t2, Vertex t3, float k_bouncing ) {
+    V = vertex;
+    normal = (t2.X-t1.X).crossProduct(t3.X-t2.X).normalize();
+    this->collisionPoint = collisionPoint;
+    originalDirection = (V->P - V->X).normalize();
+    newDirection = (originalDirection + 2*normal).normalize();
+  }
+
+};
 
 
 

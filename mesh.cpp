@@ -98,7 +98,7 @@ public:
   Mesh (string FILENAME,bool isDeformable) {
     this->isDeformable = isDeformable;
     ifstream file(FILENAME);
-    this-> meshName = FILENAME.substr(0,FILENAME.length() -4).substr(7);
+    this-> meshName = FILENAME.substr(0,FILENAME.length() -4).substr(7) + "frame";
     if (file.is_open()) {
         string line;
         set<pair<tIndex,tIndex>> tempEdges = set<pair<tIndex,tIndex>>();
@@ -111,7 +111,7 @@ public:
                 float x = stof(words[1]);
                 float y = stof(words[2]);
                 float z = stof(words[3]);
-                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),10,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
+                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),100,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
                 meshVertices++;
 /*                Vertex v;
                 v.adjEdg = vector<tIndex>();

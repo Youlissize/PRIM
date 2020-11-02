@@ -26,17 +26,19 @@ typedef long int tIndex;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/cube.obj";       // Mesh to import
-string floorFile = "Meshes/texturedSphere.obj";
+string objectFile = "Meshes/texturedSphere.obj";       // Mesh to import
+string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 150;
+int nFrames = 250;
 Real _dt = 0.05;                     // time step
 int solverIteration = 15;
 float streching = 0.9; //streching
 float k_streching = 1.f-pow((1.f-streching),1.f/solverIteration);
 float bending = 0.8; //bending
 float k_bending = 1.f-pow((1.f-bending),1.f/solverIteration);
+float bouncing = 0.8; //bouncing
+float k_bouncing = 1.f-pow((1.f-bouncing),1.f/solverIteration);
 
 
 // Coefficients
@@ -46,6 +48,7 @@ Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 vector<LengthConstraint> lengthConstraints =  vector<LengthConstraint>();
 vector<FixConstraint> fixConstraints = vector<FixConstraint>();
 vector<BendConstraint> bendConstraints = vector<BendConstraint>();
+vector<CollisionConstraint> collisionConstraint = vector<CollisionConstraint>();
 
 // END GLOBAL VARIABLES
 
@@ -87,10 +90,14 @@ public:
       meshes = vector<Mesh>();
       meshes.push_back(Mesh(objectFile,true));
       meshes.push_back(Mesh(floorFile,false));
-      scene->setMeshes(meshes);
-      for (int i =0; i<1; ++i)
+      vector<Mesh*> meshesPointers = vector<Mesh*>();
+      for (int i =0; i< meshes.size();++i){
+        meshesPointers.push_back(&meshes[i]);
+      }
+      scene->setMeshes(meshesPointers);
+     /* for (int i =0; i<1; ++i)
       fixConstraints.push_back(FixConstraint(&meshes[0].vertices[4]));
-      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));
+      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));*/
       for (int i =0; i < meshes.size();++i){
           if(meshes[i].isDeformable){
               for (auto e : meshes[i].edges){
@@ -121,7 +128,7 @@ public:
   int c = 0;
 
   void update() {
-    cout << "." << flush;
+    cout << c << " " << flush;
 
     // apply gravity
     for(auto& mesh:meshes) {
@@ -154,10 +161,13 @@ public:
 
 
     generateCollisionConstraints();
+
     // Solve constraints
     for (int i = 0; i < solverIteration; i++) {
         projectConstraints();
     }
+for (int i = 0; i < solverIteration; i++) {
+    projectCollisionConstraints();}
 
     for(auto& mesh:meshes) {
         if(mesh.isDeformable){
@@ -183,14 +193,75 @@ private:
       // TODO
   }
 
+  pair<bool,Vec3f> intersects(Vertex V, Mesh mesh, Triangle T){
+      //Algorithme de Möller Trumbore
+    const float EPSILON = 0.0000001;
+    Vec3f vertex0 = mesh.vertices[T.A].X;
+    Vec3f vertex1 = mesh.vertices[T.B].X;
+    Vec3f vertex2 = mesh.vertices[T.C].X;
+    Vec3f rayVector = V.P-V.X;
+    Vec3f rayOrigin = V.X;
+    Vec3f edge1, edge2, h, s, q;
+    float a,f,u,v;
+    edge1 = vertex1 - vertex0;
+    edge2 = vertex2 - vertex0;
+    h = rayVector.crossProduct(edge2);
+    a = edge1.dotProduct(h);
+    if (abs(a) < EPSILON)
+        return {false,Vec3f()};    // Le rayon est parallèle au triangle.
+
+    f = 1.0/a;
+    s = rayOrigin - vertex0;
+    u = f * (s.dotProduct(h));
+    if (u < 0.0 || u > 1.0)
+        return {false,Vec3f()};
+    q = s.crossProduct(edge1);
+    v = f * rayVector.dotProduct(q);
+    if (v < 0.0 || u + v > 1.0)
+        return {false,Vec3f()};
+
+    // On calcule t pour savoir ou le point d'intersection se situe sur la ligne.
+    float t = f * edge2.dotProduct(q);
+    if (t > EPSILON) // Intersection avec le rayon
+    {
+        Vec3f intersectionPoint = rayOrigin + t*rayVector ;
+        if(rayVector.length()*2- (intersectionPoint - V.X).length()>0){
+            return {true,intersectionPoint};
+
+        }
+        else
+            return {false,Vec3f()};
+    }
+    else // On a bien une intersection de droite, mais pas de rayon.
+        return {false,Vec3f()};
+}
+
+
   void generateCollisionConstraints() {
-    // TODO
+      collisionConstraint.clear();
+    for (int j = 0; j < meshes.size(); j++){
+        if (meshes[j].isDeformable){
+            for (Mesh rigid : meshes){
+                if (!rigid.isDeformable){
+                    for (int i =0; i < meshes[j].vertices.size(); i++){
+                        for (Triangle T : rigid.triangles){
+                            pair<bool,Vec3f> intersect =intersects(meshes[j].vertices[i],rigid,T) ;
+                            if (intersect.first){
+                                collisionConstraint.push_back(CollisionConstraint(&meshes[j].vertices[i],intersect.second,rigid.vertices[T.A],rigid.vertices[T.B],rigid.vertices[T.C],k_bouncing));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     }
 
   void projectConstraints() {
     for (auto fc: fixConstraints){
       fc.project();
     }
+
     for (auto lc: lengthConstraints){
       lc.project();
     }
@@ -198,6 +269,14 @@ private:
       bc.project();
     }
   }
+
+    void projectCollisionConstraints() {
+        for (auto cc: collisionConstraint){
+            cc.project();
+        }
+    }
+
+
 
   void velocityUpdate() {
       // TODO

@@ -31,29 +31,29 @@ class Scene
                         myfile << "mtllib " + name + ".mtl";}
             }
             myfile << endl;
-            for (Mesh mesh : meshes){
-                myfile << mesh.exportToOBJ(totalVertices,totalTextures,totalNormals);
-                totalVertices += mesh.meshVertices;
-                totalTextures+= mesh.meshTextures;
-                totalNormals+= mesh.meshNormals;
+            for (Mesh* mesh : meshes){
+                myfile << mesh->exportToOBJ(totalVertices,totalTextures,totalNormals);
+                totalVertices += mesh->meshVertices;
+                totalTextures+= mesh->meshTextures;
+                totalNormals+= mesh->meshNormals;
             }
         myfile.close();
         }
 
         void writeMTL(){
-        cout << "aled" << endl;
+
         ofstream myMtlFile;
         string name = "frame";
         string path = "Output/" + name;
         myMtlFile.open (path+ ".mtl");
-        for(Mesh mesh : meshes)
-            myMtlFile << mesh.mtlFileString;
+        for(Mesh* mesh : meshes)
+            myMtlFile << mesh->mtlFileString;
         myMtlFile.close();}
 
-        void setMeshes(vector<Mesh> meshes){
+        void setMeshes(vector<Mesh*> meshes){
         this->meshes = meshes;}
     private:
-        vector<Mesh> meshes;
+        vector<Mesh*> meshes;
 };
 
 #endif // SCENE_H
