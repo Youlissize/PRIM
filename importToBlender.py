@@ -19,11 +19,28 @@ for item in obj_list:
 #set a frame for each .obj file in both set and render modes    
 scene = bpy.context.scene
 name = "frame"
-objs = [obj for obj in bpy.context.visible_objects if name in obj.name]
-for i, obj in enumerate(objs):
-    obj.hide_set(i != ((scene.frame_current-1) % len(objs))) 
-def ani_handler(scene):
-    for i, obj in enumerate(objs):
-        obj.hide_set(i != ((scene.frame_current-1) % len(objs))) 
 
+objs = [obj for obj in bpy.context.visible_objects if name in obj.name]
+l0 = [obj for obj in bpy.context.visible_objects if "001" in obj.name]
+n = len(l0)
+totalFrame = len(objs)//n
+
+#Voodoo magic starts
+l = []
+for i in range (totalFrame):
+    if i <10:
+        frameCount = str(0) + str(0) + str(i)      
+    elif 10 <= i <100:
+        frameCount = str(0) + str(i)     
+    else :
+        frameCount = str(i)
+    l += [obj for obj in bpy.context.visible_objects if frameCount in obj.name]
+    for j,obj in enumerate(l):
+        obj.hide_set(i != ((scene.frame_current-1) % totalFrame)) 
+
+def ani_handler(scene):
+    for k in range(len(l)):
+        l[k].hide_set(k//n != ((scene.frame_current-1) % totalFrame))
+
+        
 bpy.app.handlers.frame_change_pre.append(ani_handler)

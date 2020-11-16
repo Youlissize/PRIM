@@ -32,7 +32,7 @@ class Scene
             }
             myfile << endl;
             for (Mesh* mesh : meshes){
-                myfile << mesh->exportToOBJ(totalVertices,totalTextures,totalNormals);
+                myfile << mesh->exportToOBJ(totalVertices,totalTextures,totalNormals,c);
                 totalVertices += mesh->meshVertices;
                 totalTextures+= mesh->meshTextures;
                 totalNormals+= mesh->meshNormals;

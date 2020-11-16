@@ -30,7 +30,7 @@ string objectFile = "Meshes/texturedSphere.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 250;
+int nFrames = 10;
 Real _dt = 0.05;                     // time step
 int solverIteration = 15;
 float streching = 0.9; //streching

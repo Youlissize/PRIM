@@ -263,9 +263,15 @@ public:
 
   }
 
-  string exportToOBJ(long totalVertices, long totalTextures, long totalNormals){
+  string exportToOBJ(long totalVertices, long totalTextures, long totalNormals, int c){
     string myfile = "";
-    myfile +=  "o " + meshName + '\n';
+
+    myfile +=  "o " + meshName ;
+    string str;
+    if(c < 10) str = "00" + to_string(c);
+    else {if (c < 100) str = "0" + to_string(c);
+        else str = to_string(c);}
+    myfile += str + '\n';
     for (auto v:vertices){
       auto x= v.X;
       myfile = myfile + "v "+to_string(x.x) +" " + to_string(x.y) + " " + to_string(x.z) + '\n';
