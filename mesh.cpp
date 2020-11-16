@@ -3,6 +3,7 @@
 #include "vector3.cpp"
 #include <set>
 #include <string>
+#include<ctime>
 using namespace std;
 
 
@@ -103,9 +104,12 @@ public:
         string line;
         set<pair<tIndex,tIndex>> tempEdges = set<pair<tIndex,tIndex>>();
         while (std::getline(file, line)) {
-
+                //cout << line << endl;
             vector<string> words;
             split(line, ' ', back_inserter(words));
+        for (int i =0; i < words.size(); i++){
+            if (words[i] == "") words.erase(words.begin() + i);
+        }
 
             if (words[0].compare("v") == 0) {
                 float x = stof(words[1]);
@@ -146,10 +150,13 @@ public:
                 tri.C=c;
                 tri.edges = vector<tIndex>();
                 triangles.push_back(tri);
+                if(vertex1[1] != ""){
                 vector<int> tex{stol(vertex1[1]),stol(vertex2[1]),stol(vertex3[1])};
+                trianglesTextures.push_back(tex);}
+                if(vertex1[2] != ""){
                 vector<int> norm{stol(vertex1[2]),stol(vertex2[2]),stol(vertex3[2])};
-                trianglesTextures.push_back(tex);
-                trianglesNormals.push_back(norm);
+                trianglesNormals.push_back(norm);}
+
 
                 // Fill edges
                 if (a > b) { tempEdges.insert(make_pair(b, a));}
@@ -163,7 +170,7 @@ public:
             }
         }
 
-
+        cout << "done reading" << endl;
         // Fill all data of the mesh
 
 /*        P = vector<Vec3f>(X.size());
@@ -178,6 +185,7 @@ public:
             edge.adjTri = vector<tIndex>();
             edges.push_back(edge);
         }
+        cout << "done edges" << endl;
 
         //Fill edge.adjTri - edges is here supposed to be sorted
         for (tIndex i=0; i<triangles.size(); i++) {
@@ -196,6 +204,7 @@ public:
           edges[pos].adjTri.push_back(i);
 
         }
+        cout << "done edges2" << endl;
 
         //Fill triangle.edges
         for(tIndex i=0; i<edges.size(); i++){
@@ -204,7 +213,7 @@ public:
           }
         }
 
-
+cout << "done triangles" << endl;
         //Fill Vertices
 
         for(tIndex i=0; i<edges.size(); i++){
@@ -216,7 +225,7 @@ public:
           vertices[triangles[i].B].adjTri.push_back(i);
           vertices[triangles[i].C].adjTri.push_back(i);
         }
-
+cout << "done vertices" << endl;
 
         file.close();
         cout << "Successfully imported " << FILENAME << endl;
@@ -278,14 +287,27 @@ public:
     }
     myfile += textures;
     for (int t=0;t<triangles.size();t++){
-        int x = trianglesTextures[t][0];
-        int y = trianglesNormals[t][0];
+        int x,y;
+        if (trianglesTextures.size() > 0)
+        x = trianglesTextures[t][0];
+        else x = 0;
+        if (trianglesNormals.size() >0)
+        y = trianglesNormals[t][0];
+        else y = 0;
         myfile+= "f " + to_string(triangles[t].A+1+totalVertices) +  "/"  + to_string(x+totalTextures) + "/" + to_string(y+totalNormals) + " ";
+        if (trianglesTextures.size() > 0)
         x = trianglesTextures[t][1];
+        else x = 0;
+        if (trianglesNormals.size() >0)
         y = trianglesNormals[t][1];
+        else y = 0;
         myfile+= to_string(triangles[t].B+1+totalVertices) +  "/" + to_string(x+totalTextures) + "/" + to_string(y+totalNormals) + " ";
+        if (trianglesTextures.size() > 0)
         x = trianglesTextures[t][2];
+        else x = 0;
+        if (trianglesNormals.size() >0)
         y = trianglesNormals[t][2];
+        else y = 0;
         myfile += to_string(triangles[t].C+1+totalVertices) + "/" + to_string(x+totalTextures) + "/" + to_string(y+totalNormals) + '\n';
     }
     return myfile;

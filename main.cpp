@@ -28,9 +28,10 @@ vector<Mesh> meshes;
 Scene* scene = new Scene();
 string objectFile = "Meshes/texturedSphere.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
+string cubeFile = "Meshes/bunny.obj";
 
 // simulation
-int nFrames = 10;
+int nFrames = 240;
 Real _dt = 0.05;                     // time step
 int solverIteration = 15;
 float streching = 0.9; //streching
@@ -88,16 +89,16 @@ public:
 
       //Import meshes
       meshes = vector<Mesh>();
-      meshes.push_back(Mesh(objectFile,true));
-      meshes.push_back(Mesh(floorFile,false));
+      //meshes.push_back(Mesh(objectFile,true));
+     // meshes.push_back(Mesh(floorFile,false));
+       meshes.push_back(Mesh(cubeFile,true));
       vector<Mesh*> meshesPointers = vector<Mesh*>();
       for (int i =0; i< meshes.size();++i){
         meshesPointers.push_back(&meshes[i]);
       }
       scene->setMeshes(meshesPointers);
-     /* for (int i =0; i<1; ++i)
-      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[4]));
-      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));*/
+      for (int i =0; i<10; ++i)
+      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[i]));
       for (int i =0; i < meshes.size();++i){
           if(meshes[i].isDeformable){
               for (auto e : meshes[i].edges){
