@@ -41,7 +41,7 @@ string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 10;
+int nFrames = 100;
 Real h = 0.05;                     // time step
 int solverIteration = 5;
 
@@ -212,12 +212,12 @@ public:
   void update() {
     cout << c << " " << flush;
     // Compute Sn
-    //M_inv*fext;
-    //sn = qn + mult(velocity,h) + mult((M_inv*fext), h*h);
-    //qn1 = sn;
+
+    sn = qn + velocity *h + M_inv*fext * h*h;
+    qn1 = sn;
 
     //Main solver loop
-    /*
+
     for (int loopCount=0;loopCount<solverIteration;loopCount++){
 
       //Local constraints solve
@@ -227,11 +227,11 @@ public:
 
       //Global Solve
       globalSolve();
-    }*/
+    }
 
     //Update velocity
-    //velocity = mult(qn1-qn, 1.f/h);
-    //qn = qn1;
+    velocity = (qn1-qn) /h;
+    qn = qn1;
 
     //Update Mesh and export
     updateMeshPos();
@@ -269,7 +269,6 @@ private:
 int main(int argc, char **argv) {
   cout<<"FUSING CONSTRAINT PROJECTION"<<endl<<endl;
 
-/*
   Solver solver;
   solver.initScene();
 
@@ -283,9 +282,6 @@ scene->writeMTL();
   cout << "State after " << nFrames << " frames : " << endl;
   //meshes[0].printVertexAndTrianglesAndEdges();
 
-*/
-
-  MyVec3 a = MyVec3(2,3,5);
 
 
 
