@@ -28,18 +28,17 @@ vector<Mesh> meshes;
 Scene* scene = new Scene();
 string objectFile = "Meshes/texturedSphere.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
-string cubeFile = "Meshes/bunny.obj";
 
 // simulation
 int nFrames = 240;
-Real _dt = 0.05;                     // time step
+Real _dt = 0.005;                     // time step
 int solverIteration = 15;
-float streching = 0.9; //streching
-float k_streching = 1.f-pow((1.f-streching),1.f/solverIteration);
-float bending = 0.8; //bending
-float k_bending = 1.f-pow((1.f-bending),1.f/solverIteration);
-float bouncing = 0.8; //bouncing
-float k_bouncing = 1.f-pow((1.f-bouncing),1.f/solverIteration);
+float k_streching = 0.9; //streching
+//float k_streching = 1.f-pow((1.f-streching),1.f/solverIteration);
+float k_bending = 0.9; //bending
+//float k_bending = 1.f-pow((1.f-bending),1.f/solverIteration);
+float k_bouncing = 0.9; //bouncing
+//float k_bouncing = 1.f-pow((1.f-bouncing),1.f/solverIteration);
 
 
 // Coefficients
@@ -89,16 +88,15 @@ public:
 
       //Import meshes
       meshes = vector<Mesh>();
-      //meshes.push_back(Mesh(objectFile,true));
-     // meshes.push_back(Mesh(floorFile,false));
-       meshes.push_back(Mesh(cubeFile,true));
+      meshes.push_back(Mesh(objectFile,true));
+      meshes.push_back(Mesh(floorFile,false));
+
       vector<Mesh*> meshesPointers = vector<Mesh*>();
       for (int i =0; i< meshes.size();++i){
         meshesPointers.push_back(&meshes[i]);
       }
       scene->setMeshes(meshesPointers);
-      for (int i =0; i<10; ++i)
-      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[i]));
+    //// fixConstraints.push_back(FixConstraint(&meshes[0].vertices[i]));
       for (int i =0; i < meshes.size();++i){
           if(meshes[i].isDeformable){
               for (auto e : meshes[i].edges){
@@ -144,7 +142,7 @@ public:
 //  #pragma omp parallel for
     if(mesh.isDeformable){
           for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
-              mesh.vertices[i].vel += _dt * (1.f/mesh.vertices[i].w) * mesh.vertices[i].acc;   // simple forward Euler
+              mesh.vertices[i].vel += _dt  * mesh.vertices[i].acc;   // simple forward Euler
           }
         }
       }
@@ -161,21 +159,24 @@ public:
     }
 
 
-    generateCollisionConstraints();
+   // generateCollisionConstraints();
 
     // Solve constraints
     for (int i = 0; i < solverIteration; i++) {
         projectConstraints();
     }
-for (int i = 0; i < solverIteration; i++) {
-    projectCollisionConstraints();}
+//for (int i = 0; i < solverIteration; i++) {
+  //  projectCollisionConstraints();}
 
     for(auto& mesh:meshes) {
         if(mesh.isDeformable){
           for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
+                if (mesh.vertices[i].P.y <-2)
+                    mesh.vertices[i].vel = -(mesh.vertices[i].P - mesh.vertices[i].X )/ _dt;
+                else{
               mesh.vertices[i].vel = (mesh.vertices[i].P - mesh.vertices[i].X) / _dt;
-              mesh.vertices[i].X = mesh.vertices[i].P;
-          }
+              mesh.vertices[i].X = mesh.vertices[i].P;}}
+
         }
     }
 
