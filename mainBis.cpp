@@ -19,11 +19,16 @@
 #include "eigen-3.3.8/Eigen/Sparse"
 #include "eigen-3.3.8/Eigen/Dense"
 #include "eigen-3.3.8/Eigen/SVD"
+#include "myVec3.cpp"
 
 using namespace std;
 typedef float Real;
 typedef long int tIndex;
-
+typedef Eigen::Matrix<float,Eigen::Dynamic,1> FloatVector;
+typedef Eigen::Matrix<MyVec3,Eigen::Dynamic,1> Vec3Vector;
+typedef Eigen::SparseMatrix<float> SparseMat;
+typedef Eigen::SparseMatrix<MyVec3> Vec3SparseMat;
+typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
 
 
 
@@ -32,11 +37,11 @@ typedef long int tIndex;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/texturedSphere.obj";       // Mesh to import
+string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 0;
+int nFrames = 100;
 Real h = 0.05;                     // time step
 int solverIteration = 5;
 
@@ -44,15 +49,18 @@ int solverIteration = 5;
 Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
 // Variables
-// maybe its better to directly use eigenVectors
-vector<Vec3f> prevPos = vector<Vec3f>();  //q_n in paper
-vector<Vec3f> nextPos = vector<Vec3f>();  //q_n+1 in paper
-vector<Vec3f> s = vector<Vec3f>();       //s_n in paper
-vector<Vec3f> velocity = vector<Vec3f>(); //v_n in paper
+tIndex N; //total number of vertices
+Vec3Vector qn;  //q_n in paper
+Vec3Vector qn1;  //q_n+1 in paper
+Vec3Vector sn;       //s_n in paper
+Vec3Vector velocity; //v_n in paper
+SparseMat M; //diagonal matrix of mass
+SparseMat M_inv; //diagonal matrix of 1/mass
+Vec3Vector fext; //external forces
+
 
 vector<FusingConstraint> constraints = vector<FusingConstraint>();  // Ci in paper
-vector<vector<Vec3f>> projections = vector<vector<Vec3f>>();    // pi in paper
-
+vector<Vec3Vector> projections = vector<Vec3Vector>();    // {pi} in paper
 
 // END GLOBAL VARIABLES
 
@@ -61,7 +69,7 @@ vector<vector<Vec3f>> projections = vector<vector<Vec3f>>();    // pi in paper
 // UTILITIES (merci JMT <3)
 
 class MySparseMatrix {
-    std::vector< std::map< unsigned int , float > > _ASparse;
+    std::vector< std::map<unsigned int , float> > _ASparse;
 
     unsigned int _rows , _columns;
 
@@ -141,7 +149,7 @@ public:
 
       //Import meshes
       meshes = vector<Mesh>();
-      meshes.push_back(Mesh(objectFile,true));
+      meshes.push_back(Mesh(objectFile,true,1.0f));
       //meshes.push_back(Mesh(floorFile,false));
       vector<Mesh*> meshesPointers = vector<Mesh*>();
       for (int i =0; i< meshes.size();++i){
@@ -149,11 +157,53 @@ public:
       }
       scene->setMeshes(meshesPointers);
 
-      //Initialize Constraints and variables
+
+      //Initialize variables
+      N=0;
+      for(auto& mesh:meshes){
+        N+=mesh.meshVertices;
+      }
+      qn = Vec3Vector(N);
+      velocity = Vec3Vector(N);
+      fext = Vec3Vector(N);
+      MySparseMatrix M_mine( N, N );
+      MySparseMatrix M_inv_mine( N, N );
+
+      tIndex count = 0;
+      for(auto& mesh:meshes){
+        for(auto& v:mesh.vertices) {
+          qn[count]= MyVec3(v.X);
+          velocity[count]  = MyVec3(0,0,0);
+          fext[count] = _g;
+          M_mine(count,count)=1.0f/v.w;
+          M_inv_mine(count,count)=v.w;
+          count ++;
+        }
+      }
+      M_mine.convertToEigenFormat(M);
+      M_inv_mine.convertToEigenFormat(M_inv);
+      qn1 = Vec3Vector(N);
+      sn = Vec3Vector(N);
+
+
+      // Create constraints
       //TODO
 
+
       //Precompute system for global solving
-      //TODO
+      SparseMat leftSide = M / (h*h); //Matrix on the left side of equation (10)
+
+      for (auto& c : constraints) {
+        if(c.AandBareIdentity){
+          leftSide += c.w * c.S.transpose() * c.S;
+        }
+        else {
+          leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
+        }
+      }
+      Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT;
+      _LHS_LDLT.analyzePattern( leftSide );
+      _LHS_LDLT.compute( leftSide );
 
 
   }
@@ -163,13 +213,17 @@ public:
   void update() {
     cout << c << " " << flush;
     // Compute Sn
-    //TODO
+    sn = qn + velocity *h + M_inv.diagonal().asDiagonal()*fext * h*h;
+    // !!!! SparseMat*Vec3Vector return wrong answer
+    qn1 = sn;
+
 
     //Main solver loop
     for (int loopCount=0;loopCount<solverIteration;loopCount++){
+
       //Local constraints solve
       for(int i =0; i<constraints.size();i++) {
-          projections[i] = constraints[i].project(nextPos);
+          //projections[i] = constraints[i].project(nextPos);
       }
 
       //Global Solve
@@ -177,16 +231,13 @@ public:
     }
 
     //Update velocity
-    //TODO
+    velocity = (qn1-qn) /h;
+    qn = qn1;
 
-    //Update Mesh position
-    //TODO
-
+    //Update Mesh and export
+    updateMeshPos();
     writeOBJFile(c);
     c++;
-
-
-
   }
 
 
@@ -194,6 +245,16 @@ private:
 
   void globalSolve() {
     //TODO
+  }
+
+  void updateMeshPos() {
+    tIndex count = 0;
+    for(auto& mesh: meshes) {
+      for(auto& v:mesh.vertices){
+        v.X = Vec3f(qn[count].x,qn[count].y,qn[count].z);
+        count ++;
+      }
+    }
   }
 
   void writeOBJFile(int c){
@@ -208,6 +269,7 @@ private:
 
 int main(int argc, char **argv) {
   cout<<"FUSING CONSTRAINT PROJECTION"<<endl<<endl;
+
   Solver solver;
   solver.initScene();
 
@@ -220,6 +282,9 @@ int main(int argc, char **argv) {
 scene->writeMTL();
   cout << "State after " << nFrames << " frames : " << endl;
   //meshes[0].printVertexAndTrianglesAndEdges();
+
+
+
 
 
   return EXIT_SUCCESS;
