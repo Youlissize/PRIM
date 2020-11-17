@@ -61,6 +61,7 @@ Vec3Vector fext; //external forces
 
 vector<FusingConstraint> constraints = vector<FusingConstraint>();  // Ci in paper
 vector<Vec3Vector> projections = vector<Vec3Vector>();    // {pi} in paper
+Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT; //LinearSystem solver
 
 // END GLOBAL VARIABLES
 
@@ -201,7 +202,6 @@ public:
           leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
         }
       }
-      Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT;
       _LHS_LDLT.analyzePattern( leftSide );
       _LHS_LDLT.compute( leftSide );
 
@@ -219,15 +219,18 @@ public:
 
 
     //Main solver loop
+    SparseMat tmp = M / (h*h);
+    Vec3Vector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
     for (int loopCount=0;loopCount<solverIteration;loopCount++){
 
       //Local constraints solve
       for(int i =0; i<constraints.size();i++) {
           //projections[i] = constraints[i].project(nextPos);
       }
+      // TODO : update rightSide
 
       //Global Solve
-      globalSolve();
+      qn1 = _LHS_LDLT.solve( rightSide );
     }
 
     //Update velocity
@@ -243,9 +246,7 @@ public:
 
 private:
 
-  void globalSolve() {
-    //TODO
-  }
+
 
   void updateMeshPos() {
     tIndex count = 0;
