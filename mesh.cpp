@@ -115,11 +115,9 @@ public:
                 float x = stof(words[1]);
                 float y = stof(words[2]);
                 float z = stof(words[3]);
-<<<<<<< HEAD
-                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
-=======
+
                 vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
->>>>>>> b28b3b4e1a6428d532ed5ee9df48ea05195f6c1b
+
                 meshVertices++;
 /*                Vertex v;
                 v.adjEdg = vector<tIndex>();
