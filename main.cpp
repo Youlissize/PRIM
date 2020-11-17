@@ -91,7 +91,7 @@ public:
       meshes = vector<Mesh>();
       //meshes.push_back(Mesh(objectFile,true));
      // meshes.push_back(Mesh(floorFile,false));
-       meshes.push_back(Mesh(cubeFile,true));
+       meshes.push_back(Mesh(cubeFile,true,0.01));
       vector<Mesh*> meshesPointers = vector<Mesh*>();
       for (int i =0; i< meshes.size();++i){
         meshesPointers.push_back(&meshes[i]);
@@ -195,7 +195,7 @@ private:
   }
 
   pair<bool,Vec3f> intersects(Vertex V, Mesh mesh, Triangle T){
-      //Algorithme de Möller Trumbore
+      //Algorithme de Mï¿½ller Trumbore
     const float EPSILON = 0.0000001;
     Vec3f vertex0 = mesh.vertices[T.A].X;
     Vec3f vertex1 = mesh.vertices[T.B].X;
@@ -209,7 +209,7 @@ private:
     h = rayVector.crossProduct(edge2);
     a = edge1.dotProduct(h);
     if (abs(a) < EPSILON)
-        return {false,Vec3f()};    // Le rayon est parallèle au triangle.
+        return {false,Vec3f()};    // Le rayon est parallï¿½le au triangle.
 
     f = 1.0/a;
     s = rayOrigin - vertex0;

@@ -51,10 +51,16 @@ public:
         MyVec3 operator/(const float s) const { return MyVec3(*this) /= s; }
 
 
-
         // comparison operators
         bool operator==(const MyVec3& r) const { return ((x == r.x) && (y == r.y) && (z == r.z)); }
         bool operator!=(const MyVec3& r) const { return !((*this) == r); }
+
+        friend istream& operator>>(istream& in, MyVec3& vec) {
+            return (in >> vec.x >> vec.y >> vec.z);
+        }
+        friend ostream& operator<<(ostream& out, const MyVec3& vec) {
+            return (out << vec.x << " " << vec.y << " " << vec.z);
+        }
 };
 
 /*

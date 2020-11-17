@@ -24,7 +24,7 @@
 using namespace std;
 typedef float Real;
 typedef long int tIndex;
-typedef Eigen::Matrix<float,Eigen::Dynamic,1> floatVector;
+typedef Eigen::Matrix<float,Eigen::Dynamic,1> FloatVector;
 typedef Eigen::Matrix<MyVec3,Eigen::Dynamic,1> Vec3Vector;
 typedef Eigen::SparseMatrix<float> SparseMat;
 typedef Eigen::SparseMatrix<MyVec3> Vec3SparseMat;
@@ -57,6 +57,7 @@ Vec3Vector velocity; //v_n in paper
 SparseMat M; //diagonal matrix of mass
 SparseMat M_inv; //diagonal matrix of 1/mass
 Vec3Vector fext; //external forces
+
 
 vector<FusingConstraint> constraints = vector<FusingConstraint>();  // Ci in paper
 vector<Vec3Vector> projections = vector<Vec3Vector>();    // {pi} in paper
@@ -148,7 +149,7 @@ public:
 
       //Import meshes
       meshes = vector<Mesh>();
-      meshes.push_back(Mesh(objectFile,true));
+      meshes.push_back(Mesh(objectFile,true,1.0f));
       //meshes.push_back(Mesh(floorFile,false));
       vector<Mesh*> meshesPointers = vector<Mesh*>();
       for (int i =0; i< meshes.size();++i){
@@ -212,12 +213,12 @@ public:
   void update() {
     cout << c << " " << flush;
     // Compute Sn
-
-    sn = qn + velocity *h + M_inv*fext * h*h;
+    sn = qn + velocity *h + M_inv.diagonal().asDiagonal()*fext * h*h;
+    // !!!! SparseMat*Vec3Vector return wrong answer
     qn1 = sn;
 
-    //Main solver loop
 
+    //Main solver loop
     for (int loopCount=0;loopCount<solverIteration;loopCount++){
 
       //Local constraints solve
