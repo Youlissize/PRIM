@@ -82,6 +82,11 @@ MyVec3 abs(MyVec3 v) {
 MyVec3 abs2(MyVec3 v) {
     return MyVec3(v.x*v.x, v.y*v.y, v.z*v.z);
 }
+
+float length(MyVec3 v) {
+  return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+}
+
 bool isfinite(const MyVec3 &) { return true; }
 
 float FLT_MAX = 3000000000000000000000.f;
