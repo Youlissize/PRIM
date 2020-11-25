@@ -5,6 +5,7 @@
 #include "eigen-3.3.8/Eigen/Dense"
 #include "eigen-3.3.8/Eigen/SVD"
 #include "myVec3.cpp"
+
 typedef float Real;
 typedef long int tIndex;
 typedef Eigen::Matrix<float,Eigen::Dynamic,1> floatVector;
@@ -23,26 +24,56 @@ public:
   SparseMat B;
   SparseMat S;
 
-  Eigen::VectorXd project(Eigen::VectorXd q) {};
+  void project(Vec3Vector q) {};
+  void addProjection(Vec3Vector& rs) {};
+
 };
 
 
-class StretchConstraint: FusingConstraint {
+
+class StretchConstraint: public FusingConstraint {
 public:
   float initialLength;
+  tIndex v1,v2;
+  MyVec3 dV1,dV2;
 
 
-  Eigen::VectorXd project(Eigen::VectorXd q) {
-    Eigen::VectorXd result = Eigen::VectorXd();
-    return result;
+  void project(Vec3Vector q)  {
+
+    float d = length(q[v1]-q[v2]);
+    if(d>0.000001){
+      dV1 = -0.5f * (d-initialLength) * (q[v1] - q[v2]) / d;
+      dV2 = 0.5f * (d-initialLength) * (q[v1] - q[v2]) / d;
+    }
+
   }
 
+  void addProjection(Vec3Vector& rs) {
+    rs[v1] += w*dV1;
+    rs[v2] += w*dV2;
+  };
+
+
+
+
   //constructor
-  StretchConstraint (Mesh* mesh,Edge e) {
+  StretchConstraint (tIndex _v1, tIndex _v2, Vec3Vector qn,float _w) {
+    w=_w;
+    v1=_v1;
+    v2=_v2;
+    tIndex N = qn.rows();
+
     AandBareIdentity = true;
+    A=SparseMat();
+    B=SparseMat();
+    S = SparseMat();
+    MySparseMatrix MyS = MySparseMatrix(N,N);
+    MyS(v1,v1)=1.f;
+    MyS(v2,v2)=1.f;
+    MyS.convertToEigenFormat(S);
 
 
-    this-> initialLength = 0;
+    this-> initialLength = length(qn[v1]-qn[v2]);
   }
 
 

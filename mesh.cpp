@@ -121,7 +121,6 @@ public:
                 float z = stof(words[3]);
                 if (z > maxY) maxY = z;
                 if (z < minY) minY = z;
-
                 vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
                 meshVertices++;
 /*                Vertex v;

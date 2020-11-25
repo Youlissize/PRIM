@@ -13,12 +13,9 @@
 #include <utility>
 #include "mesh.cpp"
 #include "vector3.cpp"
+#include "mySparseMatrix.cpp"
 #include "fusingConstraint.cpp"
 #include "Scene.cpp"
-#include "linearSystem.h"
-#include "eigen-3.3.8/Eigen/Sparse"
-#include "eigen-3.3.8/Eigen/Dense"
-#include "eigen-3.3.8/Eigen/SVD"
 #include "myVec3.cpp"
 
 using namespace std;
@@ -57,60 +54,15 @@ Vec3Vector velocity; //v_n in paper
 SparseMat M; //diagonal matrix of mass
 SparseMat M_inv; //diagonal matrix of 1/mass
 Vec3Vector fext; //external forces
+Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT; //LinearSystem solver
 
+//Constraints
+tIndex N_constraints;
+vector<StretchConstraint> stretchConstraints = vector<StretchConstraint>();  // Ci in paper
 
-vector<FusingConstraint> constraints = vector<FusingConstraint>();  // Ci in paper
-vector<Vec3Vector> projections = vector<Vec3Vector>();    // {pi} in paper
 
 // END GLOBAL VARIABLES
 
-
-
-// UTILITIES (merci JMT <3)
-
-class MySparseMatrix {
-    std::vector< std::map<unsigned int , float> > _ASparse;
-
-    unsigned int _rows , _columns;
-
-public:
-    MySparseMatrix() {
-        _rows = _columns = 0;
-    }
-    MySparseMatrix( int rows , int columns ) {
-        setDimensions(rows , columns);
-    }
-    ~MySparseMatrix() {
-    }
-
-    std::map< unsigned int , float > const & getRow( unsigned int r ) const { return _ASparse[r]; }
-
-    void setDimensions( int rows , int columns ) {
-        _rows = rows; _columns = columns;
-        _ASparse.clear();
-        _ASparse.resize(_rows);
-    }
-
-    float & operator() (unsigned int row , unsigned int column) {
-        return _ASparse[row][column];
-    }
-
-    void convertToEigenFormat(Eigen::SparseMatrix<float> & _A) {
-        // convert ad-hoc matrix to Eigen sparse format:
-        {
-            _A.resize(_rows , _columns);
-            std::vector< Eigen::Triplet< float > > triplets;
-            for( unsigned int r = 0 ; r < _rows ; ++r ) {
-                for( std::map< unsigned int , float >::const_iterator it = _ASparse[r].begin() ; it != _ASparse[r].end() ; ++it ) {
-                    unsigned int c = it->first;
-                    float val = it->second;
-                    triplets.push_back( Eigen::Triplet< float >(r,c,val) );
-                }
-            }
-            _A.setFromTriplets( triplets.begin() , triplets.end() );
-        }
-    }
-};
 
 /* README
  -> Pour les vecteurs
@@ -133,8 +85,6 @@ A_mine.convertToEigenFormat(A);
 
   (à tester...)
 */
-
-
 
 
 
@@ -186,14 +136,27 @@ public:
       sn = Vec3Vector(N);
 
 
+
       // Create constraints
-      //TODO
+      N_constraints = 0;
+      //StretchConstraints
+      float stretchWeight = 0.5f;
+      tIndex offset = 0;
+
+      for(auto& mesh : meshes){
+        for(auto& e :mesh.edges){
+          stretchConstraints.push_back( StretchConstraint(e.A+offset,e.B+offset,qn,stretchWeight) );
+        }
+        offset += mesh.meshVertices;
+      }
+
+      N_constraints += stretchConstraints.size();
 
 
       //Precompute system for global solving
       SparseMat leftSide = M / (h*h); //Matrix on the left side of equation (10)
 
-      for (auto& c : constraints) {
+      for (auto& c : stretchConstraints) {
         if(c.AandBareIdentity){
           leftSide += c.w * c.S.transpose() * c.S;
         }
@@ -201,7 +164,6 @@ public:
           leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
         }
       }
-      Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT;
       _LHS_LDLT.analyzePattern( leftSide );
       _LHS_LDLT.compute( leftSide );
 
@@ -219,15 +181,23 @@ public:
 
 
     //Main solver loop
+    SparseMat tmp = M / (h*h);
+    Vec3Vector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
     for (int loopCount=0;loopCount<solverIteration;loopCount++){
 
-      //Local constraints solve
-      for(int i =0; i<constraints.size();i++) {
-          //projections[i] = constraints[i].project(nextPos);
+      //Local constraints solve (could be done in parralel)
+      for(int i =0; i<stretchConstraints.size();i++) {
+        stretchConstraints[i].project(qn1);
       }
 
+      // update rightSide
+      for(int i =0; i<stretchConstraints.size();i++) {
+          stretchConstraints[i].addProjection(rightSide);
+      }
+
+
       //Global Solve
-      globalSolve();
+      qn1 = _LHS_LDLT.solve( rightSide );
     }
 
     //Update velocity
@@ -243,9 +213,7 @@ public:
 
 private:
 
-  void globalSolve() {
-    //TODO
-  }
+
 
   void updateMeshPos() {
     tIndex count = 0;

@@ -88,8 +88,10 @@ public:
 
       //Import meshes
       meshes = vector<Mesh>();
-      meshes.push_back(Mesh(objectFile,true,1.f));
-     // meshes.push_back(Mesh(floorFile,false,1.f));
+
+      meshes.push_back(Mesh(objectFile,true,0.01f));
+      meshes.push_back(Mesh(floorFile,false,1.0f));
+
 
       vector<Mesh*> meshesPointers = vector<Mesh*>();
       for (int i =0; i< meshes.size();++i){
