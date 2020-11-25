@@ -103,6 +103,8 @@ public:
     if (file.is_open()) {
         string line;
         set<pair<tIndex,tIndex>> tempEdges = set<pair<tIndex,tIndex>>();
+        float maxY = 0.f , maxX = 0.f, minX = 100.f , minY = 100.f;
+        int maxYIndex = -1;
         while (std::getline(file, line)) {
                 //cout << line << endl;
             vector<string> words;
@@ -111,15 +113,16 @@ public:
             if (words[i] == "") words.erase(words.begin() + i);
         }
 
+
+
             if (words[0].compare("v") == 0) {
                 float x = stof(words[1]);
                 float y = stof(words[2]);
                 float z = stof(words[3]);
-<<<<<<< HEAD
-                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
-=======
+                if (z > maxY) maxY = z;
+                if (z < minY) minY = z;
+
                 vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
->>>>>>> b28b3b4e1a6428d532ed5ee9df48ea05195f6c1b
                 meshVertices++;
 /*                Vertex v;
                 v.adjEdg = vector<tIndex>();
@@ -173,8 +176,7 @@ public:
                 else { tempEdges.insert(make_pair(c, a)); }
             }
         }
-
-        cout << "done reading" << endl;
+        cout << maxY<< " * * " << minY<<  endl;
         // Fill all data of the mesh
 
 /*        P = vector<Vec3f>(X.size());
@@ -189,8 +191,7 @@ public:
             edge.adjTri = vector<tIndex>();
             edges.push_back(edge);
         }
-        cout << "done edges" << endl;
-
+/*
         //Fill edge.adjTri - edges is here supposed to be sorted
         for (tIndex i=0; i<triangles.size(); i++) {
           Triangle t = triangles[i];
@@ -208,7 +209,6 @@ public:
           edges[pos].adjTri.push_back(i);
 
         }
-        cout << "done edges2" << endl;
 
         //Fill triangle.edges
         for(tIndex i=0; i<edges.size(); i++){
@@ -216,8 +216,7 @@ public:
             triangles[tri].edges.push_back(i);
           }
         }
-
-cout << "done triangles" << endl;
+*/
         //Fill Vertices
 
         for(tIndex i=0; i<edges.size(); i++){
@@ -229,7 +228,6 @@ cout << "done triangles" << endl;
           vertices[triangles[i].B].adjTri.push_back(i);
           vertices[triangles[i].C].adjTri.push_back(i);
         }
-cout << "done vertices" << endl;
 
         file.close();
         cout << "Successfully imported " << FILENAME << endl;

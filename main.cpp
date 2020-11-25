@@ -26,18 +26,18 @@ typedef long int tIndex;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/texturedSphere.obj";       // Mesh to import
+string objectFile = "Meshes/chocolateBunny.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 240;
-Real _dt = 0.005;                     // time step
+int nFrames = 400;
+Real _dt = 1.f/60;                     // time step
 int solverIteration = 15;
-float k_streching = 0.9; //streching
+float k_streching = 1; //streching
 //float k_streching = 1.f-pow((1.f-streching),1.f/solverIteration);
-float k_bending = 0.9; //bending
+float k_bending = 0.99; //bending
 //float k_bending = 1.f-pow((1.f-bending),1.f/solverIteration);
-float k_bouncing = 0.9; //bouncing
+float k_bouncing = 0.99999; //bouncing
 //float k_bouncing = 1.f-pow((1.f-bouncing),1.f/solverIteration);
 
 
@@ -88,21 +88,24 @@ public:
 
       //Import meshes
       meshes = vector<Mesh>();
-<<<<<<< HEAD
-      meshes.push_back(Mesh(objectFile,true));
-      meshes.push_back(Mesh(floorFile,false));
+      meshes.push_back(Mesh(objectFile,true,1.f));
+     // meshes.push_back(Mesh(floorFile,false,1.f));
 
-=======
-      //meshes.push_back(Mesh(objectFile,true));
-     // meshes.push_back(Mesh(floorFile,false));
-       meshes.push_back(Mesh(cubeFile,true,0.01));
->>>>>>> b28b3b4e1a6428d532ed5ee9df48ea05195f6c1b
       vector<Mesh*> meshesPointers = vector<Mesh*>();
       for (int i =0; i< meshes.size();++i){
         meshesPointers.push_back(&meshes[i]);
       }
       scene->setMeshes(meshesPointers);
-    //// fixConstraints.push_back(FixConstraint(&meshes[0].vertices[i]));
+      int a =0,b =0;
+      for (int i =0; i < meshes[0].vertices.size();i++){
+        if(meshes[0].vertices[i].X.y > 8.92 || meshes[0].vertices[i].X.x > 1.8 ||  meshes[0].vertices[i].X.x < -1.3
+           ||meshes[0].vertices[i].X.z  > 1.25 || meshes[0].vertices[i].X.z < -1.4   ){ fixConstraints.push_back(FixConstraint(&meshes[0].vertices[i]));
+        a++;}
+        else b++;
+      }
+
+
+
       for (int i =0; i < meshes.size();++i){
           if(meshes[i].isDeformable){
               for (auto e : meshes[i].edges){
@@ -177,11 +180,9 @@ public:
     for(auto& mesh:meshes) {
         if(mesh.isDeformable){
           for (tIndex i = 0; i < mesh.vertices.size(); ++i) {
-                if (mesh.vertices[i].P.y <-2)
-                    mesh.vertices[i].vel = -(mesh.vertices[i].P - mesh.vertices[i].X )/ _dt;
-                else{
+
               mesh.vertices[i].vel = (mesh.vertices[i].P - mesh.vertices[i].X) / _dt;
-              mesh.vertices[i].X = mesh.vertices[i].P;}}
+              mesh.vertices[i].X = mesh.vertices[i].P;}
 
         }
     }
@@ -202,7 +203,7 @@ private:
   }
 
   pair<bool,Vec3f> intersects(Vertex V, Mesh mesh, Triangle T){
-      //Algorithme de M�ller Trumbore
+      //Algorithme de Möller Trumbore
     const float EPSILON = 0.0000001;
     Vec3f vertex0 = mesh.vertices[T.A].X;
     Vec3f vertex1 = mesh.vertices[T.B].X;
@@ -216,7 +217,7 @@ private:
     h = rayVector.crossProduct(edge2);
     a = edge1.dotProduct(h);
     if (abs(a) < EPSILON)
-        return {false,Vec3f()};    // Le rayon est parall�le au triangle.
+        return {false,Vec3f()};    // Le rayon est parallèle au triangle.
 
     f = 1.0/a;
     s = rayOrigin - vertex0;
