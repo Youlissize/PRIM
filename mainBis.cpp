@@ -146,6 +146,7 @@ public:
       for(auto& mesh : meshes){
         for(auto& e :mesh.edges){
           stretchConstraints.push_back( StretchConstraint(e.A+offset,e.B+offset,qn,stretchWeight) );
+          break;
         }
         offset += mesh.meshVertices;
       }
@@ -182,9 +183,9 @@ public:
 
     //Main solver loop
     SparseMat tmp = M / (h*h);
-    Vec3Vector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
-    for (int loopCount=0;loopCount<solverIteration;loopCount++){
 
+    for (int loopCount=0;loopCount<solverIteration;loopCount++){
+      Vec3Vector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
       //Local constraints solve (could be done in parralel)
       for(int i =0; i<stretchConstraints.size();i++) {
         stretchConstraints[i].project(qn1);

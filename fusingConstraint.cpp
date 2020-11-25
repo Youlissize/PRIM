@@ -42,8 +42,8 @@ public:
 
     float d = length(q[v1]-q[v2]);
     if(d>0.000001){
-      dV1 = -0.5f * (d-initialLength) * (q[v1] - q[v2]) / d;
-      dV2 = 0.5f * (d-initialLength) * (q[v1] - q[v2]) / d;
+      dV1 = 1.f/w*q[v1]-0.5f * (d-initialLength) * (q[v1] - q[v2]) / d;
+      dV2 = 1.f/w*q[v2]+0.5f * (d-initialLength) * (q[v1] - q[v2]) / d;
     }
 
   }

@@ -9,7 +9,7 @@ public:
         float z;
 
         MyVec3() {x=0.f; y=0.f; z=0.f;}
-        MyVec3(float _x, float _y, float _z) {x=_x ; y=_x; z=_z;};
+        MyVec3(float _x, float _y, float _z) {x=_x ; y=_y; z=_z;};
         MyVec3(Vec3f v){ x=v.x; y=v.y; z=v.z; };
         MyVec3(int i) {x=0.f; y=0.f; z=0.f;};
 
@@ -89,7 +89,7 @@ float length(MyVec3 v) {
 
 bool isfinite(const MyVec3 &) { return true; }
 
-float FLT_MAX = 3000000000000000000000.f;
+float FLT_MAX = 30000000000.f;
 namespace Eigen {
     template<> struct NumTraits<MyVec3>:GenericNumTraits<MyVec3>
         //: NumTraits<float> // permits to get the epsilon, dummy_precision, lowest, highest functions
