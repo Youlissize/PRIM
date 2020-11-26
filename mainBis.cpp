@@ -47,13 +47,13 @@ Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
 // Variables
 tIndex N; //total number of vertices
-Vec3Vector qn;  //q_n in paper
-Vec3Vector qn1;  //q_n+1 in paper
-Vec3Vector sn;       //s_n in paper
-Vec3Vector velocity; //v_n in paper
+FloatVector qn;  //q_n in paper
+FloatVector qn1;  //q_n+1 in paper
+FloatVector sn;       //s_n in paper
+FloatVector velocity; //v_n in paper
 SparseMat M; //diagonal matrix of mass
 SparseMat M_inv; //diagonal matrix of 1/mass
-Vec3Vector fext; //external forces
+FloatVector fext; //external forces
 Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT; //LinearSystem solver
 
 //Constraints
@@ -113,27 +113,37 @@ public:
       for(auto& mesh:meshes){
         N+=mesh.meshVertices;
       }
-      qn = Vec3Vector(N);
-      velocity = Vec3Vector(N);
-      fext = Vec3Vector(N);
-      MySparseMatrix M_mine( N, N );
-      MySparseMatrix M_inv_mine( N, N );
+      qn = FloatVector(3*N);
+      velocity = FloatVector(3*N);
+      fext = FloatVector(3*N);
+      MySparseMatrix M_mine( 3*N, 3*N );
+      MySparseMatrix M_inv_mine( 3*N, 3*N );
 
       tIndex count = 0;
       for(auto& mesh:meshes){
         for(auto& v:mesh.vertices) {
-          qn[count]= MyVec3(v.X);
-          velocity[count]  = MyVec3(0,0,0);
-          fext[count] = _g;
-          M_mine(count,count)=1.0f/v.w;
-          M_inv_mine(count,count)=v.w;
+          qn[3*count]= v.X.x;
+          qn[3*count+1]= v.X.y;
+          qn[3*count+2]= v.X.z;
+          velocity[3*count]  = 0;
+          velocity[3*count+1]  = 0;
+          velocity[3*count+2]  = 0;
+          fext[3*count] = 0;
+          fext[3*count+1] = _g.y;
+          fext[3*count+2] = 0;
+          M_mine(3*count,3*count)=1.0f/v.w;
+          M_mine(3*count+1,3*count+1)=1.0f/v.w;
+          M_mine(3*count+2,3*count+2)=1.0f/v.w;
+          M_inv_mine(3*count,3*count)=v.w;
+          M_inv_mine(3*count+1,3*count+1)=v.w;
+          M_inv_mine(3*count+2,3*count+2)=v.w;
           count ++;
         }
       }
       M_mine.convertToEigenFormat(M);
       M_inv_mine.convertToEigenFormat(M_inv);
-      qn1 = Vec3Vector(N);
-      sn = Vec3Vector(N);
+      qn1 = FloatVector(3*N);
+      sn = FloatVector(3*N);
 
 
 
@@ -168,11 +178,9 @@ public:
       _LHS_LDLT.analyzePattern( leftSide );
       _LHS_LDLT.compute( leftSide );
 
-
   }
 
   int c = 0;
-
   void update() {
     cout << c << " " << flush;
     // Compute Sn
@@ -183,9 +191,8 @@ public:
 
     //Main solver loop
     SparseMat tmp = M / (h*h);
-
     for (int loopCount=0;loopCount<solverIteration;loopCount++){
-      Vec3Vector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
+      FloatVector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
       //Local constraints solve (could be done in parralel)
       for(int i =0; i<stretchConstraints.size();i++) {
         stretchConstraints[i].project(qn1);
@@ -196,11 +203,9 @@ public:
           stretchConstraints[i].addProjection(rightSide);
       }
 
-
       //Global Solve
       qn1 = _LHS_LDLT.solve( rightSide );
     }
-
     //Update velocity
     velocity = (qn1-qn) /h;
     qn = qn1;
@@ -220,7 +225,7 @@ private:
     tIndex count = 0;
     for(auto& mesh: meshes) {
       for(auto& v:mesh.vertices){
-        v.X = Vec3f(qn[count].x,qn[count].y,qn[count].z);
+        v.X = Vec3f(qn[3*count],qn[3*count+1],qn[3*count+2]);
         count ++;
       }
     }
