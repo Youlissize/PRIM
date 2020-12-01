@@ -38,12 +38,12 @@ string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 100;
+int nFrames = 200;
 Real h = 0.05;                     // time step
-int solverIteration = 5;
+int solverIteration = 15;
 
 // Coefficients
-Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
+Vec3f  _g = Vec3f(0, -0.08, 0);                    // gravity
 
 // Variables
 tIndex N; //total number of vertices
@@ -58,7 +58,7 @@ Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT; //LinearSystem so
 
 //Constraints
 tIndex N_constraints;
-vector<StretchConstraint> stretchConstraints = vector<StretchConstraint>();  // Ci in paper
+vector<StrainConstraint> strainConstraints = vector<StrainConstraint>();  // Ci in paper
 
 
 // END GLOBAL VARIABLES
@@ -150,24 +150,24 @@ public:
       // Create constraints
       N_constraints = 0;
       //StretchConstraints
-      float stretchWeight = 0.5f;
+      float strainWeight = 0.5f;
       tIndex offset = 0;
 
       for(auto& mesh : meshes){
-        for(auto& e :mesh.edges){
-          stretchConstraints.push_back( StretchConstraint(e.A+offset,e.B+offset,qn,stretchWeight) );
-          break;
+        for(auto& t :mesh.triangles){
+          strainConstraints.push_back( StrainConstraint(t.A+offset,t.B+offset,t.C+offset,qn,strainWeight) );
+
         }
         offset += mesh.meshVertices;
       }
 
-      N_constraints += stretchConstraints.size();
+      N_constraints += strainConstraints.size();
 
 
       //Precompute system for global solving
       SparseMat leftSide = M / (h*h); //Matrix on the left side of equation (10)
 
-      for (auto& c : stretchConstraints) {
+      for (auto& c : strainConstraints) {
         if(c.AandBareIdentity){
           leftSide += c.w * c.S.transpose() * c.S;
         }
@@ -194,13 +194,13 @@ public:
     for (int loopCount=0;loopCount<solverIteration;loopCount++){
       FloatVector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
       //Local constraints solve (could be done in parralel)
-      for(int i =0; i<stretchConstraints.size();i++) {
-        stretchConstraints[i].project(qn1);
+      for(int i =0; i<strainConstraints.size();i++) {
+        strainConstraints[i].project(qn1);
       }
 
       // update rightSide
-      for(int i =0; i<stretchConstraints.size();i++) {
-          stretchConstraints[i].addProjection(rightSide);
+      for(int i =0; i<strainConstraints.size();i++) {
+          strainConstraints[i].addProjection(rightSide);
       }
 
       //Global Solve
