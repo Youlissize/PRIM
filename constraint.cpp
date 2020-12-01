@@ -1,7 +1,6 @@
 #ifndef CONSTRAINT
 #define CONSTRAINT
 #include "vector3.cpp"
-#include "common.h"
 #include <math.h>
 using namespace std;
 
