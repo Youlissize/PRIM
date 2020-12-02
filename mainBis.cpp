@@ -38,12 +38,12 @@ string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 200;
+int nFrames = 100;
 Real h = 0.05;                     // time step
-int solverIteration = 15;
+int solverIteration = 10;
 
 // Coefficients
-Vec3f  _g = Vec3f(0, -0.08, 0);                    // gravity
+Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
 
 // Variables
 int N; //total number of vertices
@@ -151,8 +151,8 @@ public:
 
       // Create constraints
       //Strain Constraints
-      if(false) {
-        float strainWeight = 0.5f;
+      if(true) {
+        float strainWeight = 1.0f;
         int offset = 0;
         for(auto& mesh : meshes){
           for(auto& t :mesh.triangles){

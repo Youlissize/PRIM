@@ -92,14 +92,13 @@ class StrainConstraint: public FusingConstraint {
    FloatMatrix computeX (Vec3f vec1, Vec3f vec2, Vec3f vec3)
     {
     norm = (vec3-vec1).crossProduct(vec3-vec2).normalize();
-    x = (vec1-vec2).normalize();
+    x = (vec2-vec1).normalize();
     y = x.crossProduct(norm).normalize();
     Xf = FloatMatrix(2,2);
     Xf(0,0) = (vec1-vec2).length();
     Xf(1,0) = 0.f;
     Xf(0,1) = (vec3-vec1).dotProduct(x);
     Xf(1,1) = (vec3-vec1).dotProduct(y);
-
 
     return Xf;
 
