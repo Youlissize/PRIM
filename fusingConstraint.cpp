@@ -29,6 +29,28 @@ public:
 
 };
 
+
+
+class FixConstraint {
+public:
+  tIndex v;
+  Vec3f initialPos;
+
+  //constructor
+  FixConstraint(tIndex _v, FloatVector q) {
+    v=_v;
+    initialPos = Vec3f(q[3*v],q[3*v+1],q[3*v+2]);
+  }
+  void project(FloatVector& qn) {
+    qn[3*v]=initialPos.x;
+    qn[3*v+1]=initialPos.y;
+    qn[3*v+2]=initialPos.z;
+  }
+};
+
+
+
+
 class StrainConstraint: public FusingConstraint {
    public :
    tIndex a,b,c;
@@ -99,7 +121,7 @@ class StrainConstraint: public FusingConstraint {
         }
     FloatMatrix t = svdStruct.matrixU()*sigma.asDiagonal()*svdStruct.matrixV().transpose();
 
-    t = t*Xg; // ******************************************************************************               Multiplication logique mais douteuse, à tester sans !
+    t = t*Xg; // ******************************************************************************               Multiplication logique mais douteuse, ï¿½ tester sans !
    // v2 = v1 + x*t(0,0) +y*t(1,0);
     //v3 = v1 + x*t(0,1) +y*t(1,1);
     }

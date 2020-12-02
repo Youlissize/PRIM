@@ -57,8 +57,9 @@ FloatVector fext; //external forces
 Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT; //LinearSystem solver
 
 //Constraints
-tIndex N_constraints;
+vector<FixConstraint> fixConstraints = vector<FixConstraint>();
 vector<StrainConstraint> strainConstraints = vector<StrainConstraint>();  // Ci in paper
+
 
 
 // END GLOBAL VARIABLES
@@ -148,7 +149,6 @@ public:
 
 
       // Create constraints
-      N_constraints = 0;
       //StretchConstraints
       float strainWeight = 0.5f;
       tIndex offset = 0;
@@ -160,8 +160,9 @@ public:
         }
         offset += mesh.meshVertices;
       }
+      // FixConstraints
+      fixConstraints.push_back(FixConstraint(0,qn));
 
-      N_constraints += strainConstraints.size();
 
 
       //Precompute system for global solving
@@ -185,7 +186,7 @@ public:
     cout << c << " " << flush;
     // Compute Sn
     sn = qn + velocity *h + M_inv.diagonal().asDiagonal()*fext * h*h;
-    // !!!! SparseMat*Vec3Vector return wrong answer
+    for(auto& fc : fixConstraints){ fc.project(sn); }
     qn1 = sn;
 
 
@@ -193,18 +194,24 @@ public:
     SparseMat tmp = M / (h*h);
     for (int loopCount=0;loopCount<solverIteration;loopCount++){
       FloatVector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
+
       //Local constraints solve (could be done in parralel)
-      for(int i =0; i<strainConstraints.size();i++) {
-        strainConstraints[i].project(qn1);
+      for(auto& st : strainConstraints) {
+        st.project(qn1);
       }
 
       // update rightSide
-      for(int i =0; i<strainConstraints.size();i++) {
-          strainConstraints[i].addProjection(rightSide);
+      for(auto& st : strainConstraints) {
+          st.addProjection(rightSide);
       }
 
       //Global Solve
       qn1 = _LHS_LDLT.solve( rightSide );
+    }
+
+
+    for(auto& fc : fixConstraints){
+      fc.project(qn1);
     }
     //Update velocity
     velocity = (qn1-qn) /h;
@@ -218,8 +225,6 @@ public:
 
 
 private:
-
-
 
   void updateMeshPos() {
     tIndex count = 0;
