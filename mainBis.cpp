@@ -20,7 +20,7 @@
 
 using namespace std;
 typedef float Real;
-typedef long int tIndex;
+//typedef long int int;
 typedef Eigen::Matrix<float,Eigen::Dynamic,1> FloatVector;
 typedef Eigen::Matrix<MyVec3,Eigen::Dynamic,1> Vec3Vector;
 typedef Eigen::SparseMatrix<float> SparseMat;
@@ -46,7 +46,7 @@ int solverIteration = 15;
 Vec3f  _g = Vec3f(0, -0.08, 0);                    // gravity
 
 // Variables
-tIndex N; //total number of vertices
+int N; //total number of vertices
 FloatVector qn;  //q_n in paper
 FloatVector qn1;  //q_n+1 in paper
 FloatVector sn;       //s_n in paper
@@ -58,7 +58,8 @@ Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT; //LinearSystem so
 
 //Constraints
 vector<FixConstraint> fixConstraints = vector<FixConstraint>();
-vector<StrainConstraint> strainConstraints = vector<StrainConstraint>();  // Ci in paper
+vector<StrainConstraint> strainConstraints = vector<StrainConstraint>();
+vector<StretchConstraint> stretchConstraints = vector<StretchConstraint>();
 
 
 
@@ -120,7 +121,7 @@ public:
       MySparseMatrix M_mine( 3*N, 3*N );
       MySparseMatrix M_inv_mine( 3*N, 3*N );
 
-      tIndex count = 0;
+      int count = 0;
       for(auto& mesh:meshes){
         for(auto& v:mesh.vertices) {
           qn[3*count]= v.X.x;
@@ -149,20 +150,34 @@ public:
 
 
       // Create constraints
-      //StretchConstraints
-      float strainWeight = 0.5f;
-      tIndex offset = 0;
-
-      for(auto& mesh : meshes){
-        for(auto& t :mesh.triangles){
-          strainConstraints.push_back( StrainConstraint(t.A+offset,t.B+offset,t.C+offset,qn,strainWeight) );
-
+      //Strain Constraints
+      if(false) {
+        float strainWeight = 0.5f;
+        int offset = 0;
+        for(auto& mesh : meshes){
+          for(auto& t :mesh.triangles){
+            strainConstraints.push_back( StrainConstraint(t.A+offset,t.B+offset,t.C+offset,qn,strainWeight) );
+          }
+          offset += mesh.meshVertices;
         }
-        offset += mesh.meshVertices;
       }
-      // FixConstraints
-      fixConstraints.push_back(FixConstraint(0,qn));
 
+      //StretchConstraints
+      if(false) {
+        float stretchWeight = 0.5f;
+        int offset = 0;
+        for(auto& mesh : meshes){
+          for(auto& e :mesh.edges){
+            stretchConstraints.push_back( StretchConstraint(e.A+offset,e.B+offset,qn,stretchWeight) );
+          }
+          offset += mesh.meshVertices;
+        }
+      }
+
+      // FixConstraints
+      if(true){
+        fixConstraints.push_back(FixConstraint(0,qn));
+      }
 
 
       //Precompute system for global solving
@@ -199,9 +214,15 @@ public:
       for(auto& st : strainConstraints) {
         st.project(qn1);
       }
+      for(auto& st : stretchConstraints) {
+        st.project(qn1);
+      }
 
       // update rightSide
       for(auto& st : strainConstraints) {
+          st.addProjection(rightSide);
+      }
+      for(auto& st : stretchConstraints) {
           st.addProjection(rightSide);
       }
 
@@ -227,7 +248,7 @@ public:
 private:
 
   void updateMeshPos() {
-    tIndex count = 0;
+    int count = 0;
     for(auto& mesh: meshes) {
       for(auto& v:mesh.vertices){
         v.X = Vec3f(qn[3*count],qn[3*count+1],qn[3*count+2]);

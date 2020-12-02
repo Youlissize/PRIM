@@ -3,7 +3,7 @@
 using namespace std;
 
 typedef float Real;
-typedef long int tIndex;
+//typedef long int int;
 
 inline Real square(const Real a) { return a * a; }
 inline Real cube(const Real a) { return a * a * a; }
@@ -78,8 +78,8 @@ public:
         return Vector3<T2>(static_cast<T2>(x), static_cast<T2>(y), static_cast<T2>(z));
     }
 
-    const T& operator[](const tIndex i) const { assert(i < D); return v[i]; }
-    T& operator[](const tIndex i) {
+    const T& operator[](const int i) const { assert(i < D); return v[i]; }
+    T& operator[](const int i) {
         return const_cast<T&>(static_cast<const Vector3&>(*this)[i]);
     }
 
@@ -93,11 +93,11 @@ public:
     }
 
     template<typename T2>
-    Vector3& increase(const tIndex di, const T2 d) {
+    Vector3& increase(const int di, const T2 d) {
         v[di] += static_cast<T>(d); return (*this);
     }
     template<typename T2>
-    Vector3 increased(const tIndex di, const T2 d) const {
+    Vector3 increased(const int di, const T2 d) const {
         return Vector3(*this).increase(di, d);
     }
 

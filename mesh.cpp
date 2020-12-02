@@ -13,22 +13,22 @@ struct Vertex{
   float w;
   Vec3f vel;
   Vec3f acc;
-  vector<tIndex> adjEdg; //adjacent edges
-  vector<tIndex> adjTri; //adjacent triangles
+  vector<int> adjEdg; //adjacent edges
+  vector<int> adjTri; //adjacent triangles
 };
 
 struct Edge{
-  tIndex A; //first vertex
-  tIndex B; //other vertex
-  vector<tIndex> adjTri; //adjacent triangles
+  int A; //first vertex
+  int B; //other vertex
+  vector<int> adjTri; //adjacent triangles
 };
 
 
 struct Triangle{
-  tIndex A; //first vertex
-  tIndex B; //second vertex
-  tIndex C; //third vertex
-  vector<tIndex> edges; //edges of the triangles
+  int A; //first vertex
+  int B; //second vertex
+  int C; //third vertex
+  vector<int> edges; //edges of the triangles
 };
 
 
@@ -102,7 +102,7 @@ public:
     this-> meshName = FILENAME.substr(0,FILENAME.length() -4).substr(7) + "frame";
     if (file.is_open()) {
         string line;
-        set<pair<tIndex,tIndex>> tempEdges = set<pair<tIndex,tIndex>>();
+        set<pair<int,int>> tempEdges = set<pair<int,int>>();
         float maxY = 0.f , maxX = 0.f, minX = 100.f , minY = 100.f;
         int maxYIndex = -1;
         while (std::getline(file, line)) {
@@ -121,11 +121,11 @@ public:
                 float z = stof(words[3]);
                 if (z > maxY) maxY = z;
                 if (z < minY) minY = z;
-                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<tIndex>(),vector<tIndex>()});
+                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<int>(),vector<int>()});
                 meshVertices++;
 /*                Vertex v;
-                v.adjEdg = vector<tIndex>();
-                v.adjTri = vector<tIndex>();
+                v.adjEdg = vector<int>();
+                v.adjTri = vector<int>();
                 vertices.push_back(v);*/
             }
 
@@ -147,20 +147,20 @@ public:
                 split(words[1],'/',back_inserter(vertex1));
                 split(words[2],'/',back_inserter(vertex2));
                 split(words[3],'/',back_inserter(vertex3));
-                tIndex a = stol(vertex1[0])-1;
-                tIndex b = stol(vertex2[0])-1;
-                tIndex c = stol(vertex3[0])-1;
+                int a = stol(vertex1[0])-1;
+                int b = stol(vertex2[0])-1;
+                int c = stol(vertex3[0])-1;
                 Triangle tri;
                 tri.A=a;
                 tri.B=b;
                 tri.C=c;
-                tri.edges = vector<tIndex>();
+                tri.edges = vector<int>();
                 triangles.push_back(tri);
                 if(vertex1[1] != ""){
-                vector<int> tex{stol(vertex1[1]),stol(vertex2[1]),stol(vertex3[1])};
+                vector<int> tex{(int)stol(vertex1[1]),(int)stol(vertex2[1]),(int)stol(vertex3[1])};
                 trianglesTextures.push_back(tex);}
                 if(vertex1[2] != ""){
-                vector<int> norm{stol(vertex1[2]),stol(vertex2[2]),stol(vertex3[2])};
+                vector<int> norm{(int)stol(vertex1[2]),(int)stol(vertex2[2]),(int)stol(vertex3[2])};
                 trianglesNormals.push_back(norm);}
 
 
@@ -187,12 +187,12 @@ public:
             Edge edge;
             edge.A=e.first;
             edge.B=e.second;
-            edge.adjTri = vector<tIndex>();
+            edge.adjTri = vector<int>();
             edges.push_back(edge);
         }
 /*
         //Fill edge.adjTri - edges is here supposed to be sorted
-        for (tIndex i=0; i<triangles.size(); i++) {
+        for (int i=0; i<triangles.size(); i++) {
           Triangle t = triangles[i];
 
           Edge e = {.A=min(t.A,t.B), .B=max(t.A,t.B)};
@@ -210,19 +210,19 @@ public:
         }
 
         //Fill triangle.edges
-        for(tIndex i=0; i<edges.size(); i++){
-          for(tIndex tri : edges[i].adjTri) {
+        for(int i=0; i<edges.size(); i++){
+          for(int tri : edges[i].adjTri) {
             triangles[tri].edges.push_back(i);
           }
         }
 */
         //Fill Vertices
 
-        for(tIndex i=0; i<edges.size(); i++){
+        for(int i=0; i<edges.size(); i++){
           vertices[edges[i].A].adjEdg.push_back(i);
           vertices[edges[i].B].adjEdg.push_back(i);
         }
-        for(tIndex i=0; i<triangles.size(); i++){
+        for(int i=0; i<triangles.size(); i++){
           vertices[triangles[i].A].adjTri.push_back(i);
           vertices[triangles[i].B].adjTri.push_back(i);
           vertices[triangles[i].C].adjTri.push_back(i);
@@ -258,11 +258,11 @@ public:
 
       cout << endl;
       cout << "---VERTICES---" << endl;
-      for (tIndex i = 0; i < vertices.size(); i++) {
+      for (int i = 0; i < vertices.size(); i++) {
           cout << vertices[i].X << endl;
       }
       cout << "---TRIANGLES---" << endl;
-      for (tIndex i = 0; i < triangles.size(); i++) {
+      for (int i = 0; i < triangles.size(); i++) {
           cout << triangles[i].A <<" / "<< triangles[i].B << " / " << triangles[i].C << endl;
       }
       cout << "---EDGES---" << endl;

@@ -7,7 +7,7 @@
 #include "myVec3.cpp"
 
 typedef float Real;
-typedef long int tIndex;
+//typedef long int int;
 typedef Eigen::Matrix<float,Eigen::Dynamic,1> FloatVector;
 typedef Eigen::Matrix<MyVec3,Eigen::Dynamic,1> Vec3Vector;
 typedef Eigen::SparseMatrix<float> SparseMat;
@@ -33,11 +33,11 @@ public:
 
 class FixConstraint {
 public:
-  tIndex v;
+  int v;
   Vec3f initialPos;
 
   //constructor
-  FixConstraint(tIndex _v, FloatVector q) {
+  FixConstraint(int _v, FloatVector q) {
     v=_v;
     initialPos = Vec3f(q[3*v],q[3*v+1],q[3*v+2]);
   }
@@ -53,14 +53,14 @@ public:
 
 class StrainConstraint: public FusingConstraint {
    public :
-   tIndex a,b,c;
+   int a,b,c;
    Vec3f v1_init,v2_init,v3_init,v1,v2,v3,x,y,norm;
    FloatMatrix Xg, Xf;
    float sMin, sMax;
    //Constructor
 
-    StrainConstraint(tIndex a, tIndex b, tIndex c, FloatVector qn, float w){
-    tIndex N = qn.rows()/3;
+    StrainConstraint(int a, int b, int c, FloatVector qn, float w){
+    int N = qn.rows()/3;
     v1_init = Vec3f(qn[3*a],qn[3*a+1], qn[3*a+2]);
     v2_init = Vec3f(qn[3*b],qn[3*b+1], qn[3*b+2]);
     v3_init = Vec3f(qn[3*c],qn[3*c+1], qn[3*c+2]);
@@ -122,8 +122,8 @@ class StrainConstraint: public FusingConstraint {
     FloatMatrix t = svdStruct.matrixU()*sigma.asDiagonal()*svdStruct.matrixV().transpose();
 
     t = t*Xg; // ******************************************************************************               Multiplication logique mais douteuse, � tester sans !
-   // v2 = v1 + x*t(0,0) +y*t(1,0);
-    //v3 = v1 + x*t(0,1) +y*t(1,1);
+    v2 = v1 + x*t(0,0) +y*t(1,0);
+    v3 = v1 + x*t(0,1) +y*t(1,1);
     }
      void addProjection(FloatVector& rs) {
     rs[3*a] += w*v1.x;
@@ -143,7 +143,7 @@ class StrainConstraint: public FusingConstraint {
 class StretchConstraint: public FusingConstraint {
 public:
   float initialLength;
-  tIndex v1,v2;
+  int v1,v2;
   Vec3f dV1,dV2,q1,q2;
 
 
@@ -173,11 +173,11 @@ public:
 
 
   //constructor
-  StretchConstraint (tIndex _v1, tIndex _v2, FloatVector qn,float _w) {
+  StretchConstraint (int _v1, int _v2, FloatVector qn,float _w) {
     w=_w;
     v1=_v1;
     v2=_v2;
-    tIndex N = qn.rows()/3;
+    int N = qn.rows()/3;
     q1 = Vec3f(qn[3*_v1],qn[3*_v1+1],qn[3*_v1+2]);
     q2 = Vec3f(qn[3*_v2],qn[3*_v2+1],qn[3*_v2+2]);
     AandBareIdentity = true;
