@@ -9,6 +9,7 @@
 #include <string>
 #include <set>
 #include <utility>
+#include <chrono>
 #include "mesh.cpp"
 #include "vector3.cpp"
 #include "constraint.cpp"
@@ -50,6 +51,7 @@ vector<FixConstraint> fixConstraints = vector<FixConstraint>();
 vector<BendConstraint> bendConstraints = vector<BendConstraint>();
 vector<CollisionConstraint> collisionConstraint = vector<CollisionConstraint>();
 
+int Nvertex = 0;
 // END GLOBAL VARIABLES
 
 
@@ -110,6 +112,7 @@ public:
 
       for (int i =0; i < meshes.size();++i){
           if(meshes[i].isDeformable){
+              Nvertex += meshes[i].meshVertices;
               for (auto e : meshes[i].edges){
                 lengthConstraints.push_back(LengthConstraint(&meshes[i].vertices[e.A],&meshes[i].vertices[e.B],k_streching));
               }
@@ -348,10 +351,14 @@ private:
 
 
 int main(int argc, char **argv) {
+  cout<<"POSITION BASED DYNAMICS"<<endl;
+  auto start = chrono::steady_clock::now();
 
   Solver solver;
   solver.initScene();
 
+  auto initialisationTime = chrono::steady_clock::now();
+  std::chrono::duration<double> initialisationSeconds = initialisationTime-start;
   //meshes[0].printVertexAndTrianglesAndEdges();
 
   for (int i = 0; i < nFrames; i++) {
@@ -362,6 +369,14 @@ scene->writeMTL();
   cout << "State after " << nFrames << " frames : " << endl;
   //meshes[0].printVertexAndTrianglesAndEdges();
 
+
+  auto end = chrono::steady_clock::now();
+  chrono::duration<double> totalSeconds = end-start;
+  chrono::duration<double> framesSeconds = end-initialisationTime;
+  cout << "\nTotal number of vertices: "<<Nvertex<<endl;
+  cout << "Initialisation time: " << initialisationSeconds.count() << "s\n";
+  cout << "Total time: " << totalSeconds.count() << "s\n";
+  cout << "Time for one frame: " << framesSeconds.count() / (float)nFrames << "s\n";
 
   return EXIT_SUCCESS;
 }

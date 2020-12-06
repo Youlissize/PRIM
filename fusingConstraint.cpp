@@ -31,17 +31,35 @@ public:
 
 
 
-class FixConstraint {
+class FixConstraint : public FusingConstraint {
 public:
   int v;
   Vec3f initialPos;
 
   //constructor
-  FixConstraint(int _v, FloatVector q) {
+  FixConstraint(int _v, FloatVector q,float _w) {
+    w =_w;
     v=_v;
     initialPos = Vec3f(q[3*v],q[3*v+1],q[3*v+2]);
+    AandBareIdentity = true;
+    S = SparseMat();
+    int N = q.rows()/3;
+    MySparseMatrix MyS = MySparseMatrix(3*N,3*N);
+    MyS(3*v,3*v)=1.f;
+    MyS(3*v+1,3*v+1)=1.f;
+    MyS(3*v+2,3*v+2)=1.f;
+    MyS.convertToEigenFormat(S);
+
   }
-  void project(FloatVector& qn) {
+  void project(FloatVector q) {};
+
+  void addProjection(FloatVector& qn) {
+    qn[3*v]+=w*initialPos.x;
+    qn[3*v+1]+=w*initialPos.y;
+    qn[3*v+2]+=w*initialPos.z;
+  }
+
+  void fix(FloatVector& qn) { 
     qn[3*v]=initialPos.x;
     qn[3*v+1]=initialPos.y;
     qn[3*v+2]=initialPos.z;
@@ -84,24 +102,23 @@ class StrainConstraint: public FusingConstraint {
     MyS(3*c+1,3*c+1)=1.f;
     MyS(3*c+2,3*c+2)=1.f;
     MyS.convertToEigenFormat(S);
-    sMin = 1;
-    sMax = 1;
+    sMin = 0.99;
+    sMax = 1.01;
 
    }
 
    FloatMatrix computeX (Vec3f vec1, Vec3f vec2, Vec3f vec3)
     {
-    norm = (vec3-vec1).crossProduct(vec3-vec2).normalize();
-    x = (vec2-vec1).normalize();
-    y = x.crossProduct(norm).normalize();
-    Xf = FloatMatrix(2,2);
-    Xf(0,0) = (vec1-vec2).length();
-    Xf(1,0) = 0.f;
-    Xf(0,1) = (vec3-vec1).dotProduct(x);
-    Xf(1,1) = (vec3-vec1).dotProduct(y);
+      norm = (vec3-vec1).crossProduct(vec3-vec2).normalize();
+      x = (vec2-vec1).normalize();
+      y = x.crossProduct(norm).normalize();
+      FloatMatrix X = FloatMatrix(2,2);
+      X(0,0) = (vec1-vec2).length();
+      X(1,0) = 0.f;
+      X(0,1) = (vec3-vec1).dotProduct(x);
+      X(1,1) = (vec3-vec1).dotProduct(y);
 
-    return Xf;
-
+      return X;
     }
 
     void project(FloatVector qn){

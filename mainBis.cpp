@@ -11,6 +11,7 @@
 #include <string>
 #include <set>
 #include <utility>
+#include <chrono>
 #include "mesh.cpp"
 #include "vector3.cpp"
 #include "mySparseMatrix.cpp"
@@ -176,7 +177,9 @@ public:
 
       // FixConstraints
       if(true){
-        fixConstraints.push_back(FixConstraint(0,qn));
+        float fixWeight = 10.0f;
+        fixConstraints.push_back(FixConstraint(0,qn,fixWeight));
+        fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
       }
 
 
@@ -184,6 +187,22 @@ public:
       SparseMat leftSide = M / (h*h); //Matrix on the left side of equation (10)
 
       for (auto& c : strainConstraints) {
+        if(c.AandBareIdentity){
+          leftSide += c.w * c.S.transpose() * c.S;
+        }
+        else {
+          leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
+        }
+      }
+      for (auto& c : stretchConstraints) {
+        if(c.AandBareIdentity){
+          leftSide += c.w * c.S.transpose() * c.S;
+        }
+        else {
+          leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
+        }
+      }
+      for (auto& c : fixConstraints) {
         if(c.AandBareIdentity){
           leftSide += c.w * c.S.transpose() * c.S;
         }
@@ -201,7 +220,7 @@ public:
     cout << c << " " << flush;
     // Compute Sn
     sn = qn + velocity *h + M_inv.diagonal().asDiagonal()*fext * h*h;
-    for(auto& fc : fixConstraints){ fc.project(sn); }
+    for(auto& fc : fixConstraints){ fc.fix(sn); }
     qn1 = sn;
 
 
@@ -211,9 +230,11 @@ public:
       FloatVector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
 
       //Local constraints solve (could be done in parralel)
+      #pragma omp for
       for(auto& st : strainConstraints) {
         st.project(qn1);
       }
+      #pragma omp for
       for(auto& st : stretchConstraints) {
         st.project(qn1);
       }
@@ -225,15 +246,17 @@ public:
       for(auto& st : stretchConstraints) {
           st.addProjection(rightSide);
       }
+      for(auto& fc : fixConstraints){ // Maybe useless
+        fc.addProjection(rightSide);
+      }
 
       //Global Solve
       qn1 = _LHS_LDLT.solve( rightSide );
     }
 
 
-    for(auto& fc : fixConstraints){
-      fc.project(qn1);
-    }
+    for(auto& fc : fixConstraints) { fc.fix(qn1); }
+
     //Update velocity
     velocity = (qn1-qn) /h;
     qn = qn1;
@@ -268,12 +291,15 @@ private:
 
 
 int main(int argc, char **argv) {
-  cout<<"FUSING CONSTRAINT PROJECTION"<<endl<<endl;
+  cout<<"FUSING CONSTRAINT PROJECTION"<<endl;
+  auto start = chrono::steady_clock::now();
 
   Solver solver;
   solver.initScene();
 
   //meshes[0].printVertexAndTrianglesAndEdges();
+  auto initialisationTime = chrono::steady_clock::now();
+  std::chrono::duration<double> initialisationSeconds = initialisationTime-start;
 
   for (int i = 0; i < nFrames; i++) {
       solver.update();
@@ -283,7 +309,13 @@ scene->writeMTL();
   cout << "State after " << nFrames << " frames : " << endl;
   //meshes[0].printVertexAndTrianglesAndEdges();
 
-
+  auto end = chrono::steady_clock::now();
+  chrono::duration<double> totalSeconds = end-start;
+  chrono::duration<double> framesSeconds = end-initialisationTime;
+  cout << "\nTotal number of vertices: "<<N<<endl;
+  cout << "Initialisation time: " << initialisationSeconds.count() << "s\n";
+  cout << "Total time: " << totalSeconds.count() << "s\n";
+  cout << "Time for one frame: " << framesSeconds.count() / (float)nFrames << "s\n";
 
 
 
