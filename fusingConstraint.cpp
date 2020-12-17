@@ -59,7 +59,7 @@ public:
     qn[3*v+2]+=w*initialPos.z;
   }
 
-  void fix(FloatVector& qn) { 
+  void fix(FloatVector& qn) {
     qn[3*v]=initialPos.x;
     qn[3*v+1]=initialPos.y;
     qn[3*v+2]=initialPos.z;
@@ -102,8 +102,8 @@ class StrainConstraint: public FusingConstraint {
     MyS(3*c+1,3*c+1)=1.f;
     MyS(3*c+2,3*c+2)=1.f;
     MyS.convertToEigenFormat(S);
-    sMin = 0.99;
-    sMax = 1.01;
+    sMin = 0.95;
+    sMax = 1.05;
 
    }
 
@@ -140,6 +140,13 @@ class StrainConstraint: public FusingConstraint {
     t = t*Xg; // ******************************************************************************               Multiplication logique mais douteuse, � tester sans !
     v2 = v1 + x*t(0,0) +y*t(1,0);
     v3 = v1 + x*t(0,1) +y*t(1,1);
+/*
+    if(a==0) {
+      cout<<(v2-v1).length()<<"  /  ";
+      cout<<(v3-v1).length()<<"  /  ";
+      cout<<(v2-v3).length()<<endl;
+    }*/
+
     }
      void addProjection(FloatVector& rs) {
     rs[3*a] += w*v1.x;

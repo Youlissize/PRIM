@@ -102,7 +102,7 @@ public:
 
       //Import meshes
       meshes = vector<Mesh>();
-      meshes.push_back(Mesh(objectFile,true,1.0f));
+      meshes.push_back(Mesh(objectFile,true,0.01f));
       //meshes.push_back(Mesh(floorFile,false));
       vector<Mesh*> meshesPointers = vector<Mesh*>();
       for (int i =0; i< meshes.size();++i){
@@ -132,7 +132,7 @@ public:
           velocity[3*count+1]  = 0;
           velocity[3*count+2]  = 0;
           fext[3*count] = 0;
-          fext[3*count+1] = _g.y;
+          fext[3*count+1] = _g.y * (1.0f/v.w);
           fext[3*count+2] = 0;
           M_mine(3*count,3*count)=1.0f/v.w;
           M_mine(3*count+1,3*count+1)=1.0f/v.w;
@@ -177,7 +177,7 @@ public:
 
       // FixConstraints
       if(true){
-        float fixWeight = 10.0f;
+        float fixWeight = 1.0f;  //useless
         fixConstraints.push_back(FixConstraint(0,qn,fixWeight));
         fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
       }
@@ -202,6 +202,7 @@ public:
           leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
         }
       }
+
       for (auto& c : fixConstraints) {
         if(c.AandBareIdentity){
           leftSide += c.w * c.S.transpose() * c.S;
@@ -210,8 +211,10 @@ public:
           leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
         }
       }
+
       _LHS_LDLT.analyzePattern( leftSide );
       _LHS_LDLT.compute( leftSide );
+
 
   }
 
