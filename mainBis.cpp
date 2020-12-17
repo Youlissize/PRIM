@@ -153,7 +153,7 @@ public:
       // Create constraints
       //Strain Constraints
       if(true) {
-        float strainWeight = 1.0f;
+        float strainWeight = 10.0f;
         int offset = 0;
         for(auto& mesh : meshes){
           for(auto& t :mesh.triangles){
@@ -177,8 +177,8 @@ public:
 
       // FixConstraints
       if(true){
-        float fixWeight = 1.0f;  //useless
-        fixConstraints.push_back(FixConstraint(0,qn,fixWeight));
+        float fixWeight = 10.0f;
+        //fixConstraints.push_back(FixConstraint(0,qn,fixWeight));
         fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
       }
 

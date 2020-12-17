@@ -102,8 +102,8 @@ class StrainConstraint: public FusingConstraint {
     MyS(3*c+1,3*c+1)=1.f;
     MyS(3*c+2,3*c+2)=1.f;
     MyS.convertToEigenFormat(S);
-    sMin = 0.95;
-    sMax = 1.05;
+    sMin = 1.0;
+    sMax = 1.0;
 
    }
 
@@ -125,6 +125,7 @@ class StrainConstraint: public FusingConstraint {
     v1 = Vec3f(qn[3*a],qn[3*a+1], qn[3*a+2]);
     v2 = Vec3f(qn[3*b],qn[3*b+1], qn[3*b+2]);
     v3 = Vec3f(qn[3*c],qn[3*c+1], qn[3*c+2]);
+    Vec3f Bary = (v1+v2+v3)/3.0f;
     Xf = computeX(v1,v2,v3);
     FloatMatrix m = FloatMatrix(2,2);
     m = Xf*Xg.inverse();
@@ -140,6 +141,10 @@ class StrainConstraint: public FusingConstraint {
     t = t*Xg; // ******************************************************************************               Multiplication logique mais douteuse, � tester sans !
     v2 = v1 + x*t(0,0) +y*t(1,0);
     v3 = v1 + x*t(0,1) +y*t(1,1);
+    Vec3f BaryProj = (v1+v2+v3)/3.0f;
+    v1+=(Bary-BaryProj);
+    v2+=(Bary-BaryProj);
+    v3+=(Bary-BaryProj);
 /*
     if(a==0) {
       cout<<(v2-v1).length()<<"  /  ";
