@@ -35,13 +35,13 @@ typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/blueCube.obj";       // Mesh to import
+string objectFile = "Meshes/sphere.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
 int nFrames = 100;
 Real h = 0.05;                     // time step
-int solverIteration = 10;
+int solverIteration = 4;
 
 // Coefficients
 Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
@@ -177,9 +177,15 @@ public:
 
       // FixConstraints
       if(true){
-        float fixWeight = 10.0f;
-        //fixConstraints.push_back(FixConstraint(0,qn,fixWeight));
-        fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
+        float fixWeight = 1.0f;
+        fixConstraints.push_back(FixConstraint(2,qn,fixWeight));
+        //fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
+        /*
+        for (int i =0; i < meshes[0].vertices.size(); ++i){
+                if(meshes[0].vertices[i].X.y > 0.8)
+                fixConstraints.push_back(FixConstraint(i,qn,fixWeight));
+            }
+        */
       }
 
 
@@ -294,6 +300,7 @@ private:
 
 
 int main(int argc, char **argv) {
+
   cout<<"FUSING CONSTRAINT PROJECTION"<<endl;
   auto start = chrono::steady_clock::now();
 

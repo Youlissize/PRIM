@@ -87,9 +87,43 @@ class StrainConstraint: public FusingConstraint {
     this->c = c;
     this->w = w;
     Xg = computeX(v1_init,v2_init,v3_init);
-    AandBareIdentity = true;
+    AandBareIdentity = false;
     A=SparseMat();
-    B=SparseMat();
+    MySparseMatrix MyA = MySparseMatrix(3*N,3*N);
+    MyA(3*a,3*a)=2.0f/3.0f;
+    MyA(3*a+1,3*a+1)=2.0f/3.0f;
+    MyA(3*a+2,3*a+2)=2.0f/3.0f;
+    MyA(3*b,3*b)=2.0f/3.0f;
+    MyA(3*b+1,3*b+1)=2.0f/3.0f;
+    MyA(3*b+2,3*b+2)=2.0f/3.0f;
+    MyA(3*c,3*c)=2.0f/3.0f;
+    MyA(3*c+1,3*c+1)=2.0f/3.0f;
+    MyA(3*c+2,3*c+2)=2.0f/3.0f;
+
+    MyA(3*a,3*b)=-1.0f/3.0f;
+    MyA(3*a+1,3*b+1)=-1.0f/3.0f;
+    MyA(3*a+2,3*b+2)=-1.0f/3.0f;
+    MyA(3*a,3*c)=-1.0f/3.0f;
+    MyA(3*a+1,3*c+1)=-1.0f/3.0f;
+    MyA(3*a+2,3*c+2)=-1.0f/3.0f;
+
+    MyA(3*b,3*a)=-1.0f/3.0f;
+    MyA(3*b+1,3*a+1)=-1.0f/3.0f;
+    MyA(3*b+2,3*a+2)=-1.0f/3.0f;
+    MyA(3*b,3*c)=-1.0f/3.0f;
+    MyA(3*b+1,3*c+1)=-1.0f/3.0f;
+    MyA(3*b+2,3*c+2)=-1.0f/3.0f;
+
+    MyA(3*c,3*b)=-1.0f/3.0f;
+    MyA(3*c+1,3*b+1)=-1.0f/3.0f;
+    MyA(3*c+2,3*b+2)=-1.0f/3.0f;
+    MyA(3*c,3*a)=-1.0f/3.0f;
+    MyA(3*c+1,3*a+1)=-1.0f/3.0f;
+    MyA(3*c+2,3*a+2)=-1.0f/3.0f;
+
+    MyA.convertToEigenFormat(A);
+    B=A;
+
     S = SparseMat();
     MySparseMatrix MyS = MySparseMatrix(3*N,3*N);
     MyS(3*a,3*a)=1.f;
@@ -102,8 +136,8 @@ class StrainConstraint: public FusingConstraint {
     MyS(3*c+1,3*c+1)=1.f;
     MyS(3*c+2,3*c+2)=1.f;
     MyS.convertToEigenFormat(S);
-    sMin = 1.0;
-    sMax = 1.0;
+    sMin = 0.95;
+    sMax = 1.05;
 
    }
 
@@ -145,15 +179,27 @@ class StrainConstraint: public FusingConstraint {
     v1+=(Bary-BaryProj);
     v2+=(Bary-BaryProj);
     v3+=(Bary-BaryProj);
-/*
-    if(a==0) {
-      cout<<(v2-v1).length()<<"  /  ";
-      cout<<(v3-v1).length()<<"  /  ";
-      cout<<(v2-v3).length()<<endl;
-    }*/
+
+    SparseMat Col = SparseMat();
+    MySparseMatrix MyCol = MySparseMatrix(qn.size(),1);
+    MyCol(3*a,0) = v1.x;
+    MyCol(3*a+1,0) = v1.y;
+    MyCol(3*a+2,0) = v1.z;
+    MyCol(3*b,0) = v2.x;
+    MyCol(3*b+1,0) = v2.y;
+    MyCol(3*b+2,0) = v2.z;
+    MyCol(3*c,0) = v3.x;
+    MyCol(3*c+1,0) = v3.y;
+    MyCol(3*c+2,0) = v3.z;
+    MyCol.convertToEigenFormat(Col);
+    SparseMat newCol = A.transpose() * B * Col;
+    v1 = Vec3f(newCol.coeffRef(3*a,0),newCol.coeffRef(3*a+1,0),newCol.coeffRef(3*a+2,0));
+    v2 = Vec3f(newCol.coeffRef(3*b,0),newCol.coeffRef(3*b+1,0),newCol.coeffRef(3*b+2,0));
+    v3 = Vec3f(newCol.coeffRef(3*c,0),newCol.coeffRef(3*c+1,0),newCol.coeffRef(3*c+2,0));
+
 
     }
-     void addProjection(FloatVector& rs) {
+    void addProjection(FloatVector& rs) {
     rs[3*a] += w*v1.x;
     rs[3*a+1] += w*v1.y;
     rs[3*a+2] += w*v1.z;
