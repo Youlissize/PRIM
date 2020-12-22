@@ -1,9 +1,9 @@
 #ifndef MYSPARSE
 #define MYSPARSE
 #include "linearSystem.h"
-#include "eigen-3.3.8/Eigen/Sparse"
-#include "eigen-3.3.8/Eigen/Dense"
-#include "eigen-3.3.8/Eigen/SVD"
+#include "eigen-3.3.9/Eigen/Sparse"
+#include "eigen-3.3.9/Eigen/Dense"
+#include "eigen-3.3.9/Eigen/SVD"
 
 
 class MySparseMatrix {

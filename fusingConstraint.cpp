@@ -1,9 +1,9 @@
 #ifndef PROJCONSTRAINT
 #define PROJCONSTRAINT
 
-#include "eigen-3.3.8/Eigen/Sparse"
-#include "eigen-3.3.8/Eigen/Dense"
-#include "eigen-3.3.8/Eigen/SVD"
+#include "eigen-3.3.9/Eigen/Sparse"
+#include "eigen-3.3.9/Eigen/Dense"
+#include "eigen-3.3.9/Eigen/SVD"
 #include "myVec3.cpp"
 
 typedef float Real;

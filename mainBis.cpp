@@ -239,11 +239,15 @@ public:
       FloatVector rightSide = tmp.diagonal().asDiagonal()*sn; // right side of equation (10)
 
       //Local constraints solve (could be done in parralel)
-      #pragma omp for
+      #pragma omp parallel
       for(auto& st : strainConstraints) {
         st.project(qn1);
       }
-      #pragma omp for
+      #pragma omp parallel
+      for(int i =0; i <10; ++i) {
+        cout << i << endl;
+      }
+      #pragma omp parallel 
       for(auto& st : stretchConstraints) {
         st.project(qn1);
       }
