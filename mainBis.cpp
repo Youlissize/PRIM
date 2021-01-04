@@ -245,11 +245,8 @@ public:
       for(auto& st : strainConstraints) {
         st.project(qn1);
       }
+
       #pragma omp parallel
-      for(int i =0; i <10; ++i) {
-        cout << i << endl;
-      }
-      #pragma omp parallel 
       for(auto& st : stretchConstraints) {
         st.project(qn1);
       }
@@ -323,11 +320,10 @@ int main(int argc, char **argv) {
   Solver solver;
   solver.initScene();
 
-  meshes[0].printVertexAndTrianglesAndEdges();
+  //meshes[0].printVertexAndTrianglesAndEdges();
   auto initialisationTime = chrono::steady_clock::now();
   std::chrono::duration<double> initialisationSeconds = initialisationTime-start;
 
-  //return 0;
   for (int i = 0; i < nFrames; i++) {
       solver.update();
       scene->exportToOBJ(i);
