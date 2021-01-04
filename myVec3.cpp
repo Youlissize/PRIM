@@ -1,6 +1,6 @@
 #ifndef MYVEC3
 #define MYVEC3
-#include "eigen-3.3.8/Eigen/Dense"
+#include "eigen-3.3.9/Eigen/Dense"
 
 class MyVec3 {
 public:
