@@ -3,8 +3,8 @@
 
 
 
-#include "./eigen-3.3.8/Eigen/SparseCore"
-#include "./eigen-3.3.8/Eigen/SparseCholesky"
+#include "./eigen-3.3.9/Eigen/SparseCore"
+#include "./eigen-3.3.9/Eigen/SparseCholesky"
 
 #include <vector>
 #include <map>

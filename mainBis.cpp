@@ -12,6 +12,8 @@
 #include <set>
 #include <utility>
 #include <chrono>
+#include <omp.h>
+//#include <execution>
 #include "mesh.cpp"
 #include "vector3.cpp"
 #include "mySparseMatrix.cpp"
@@ -35,7 +37,7 @@ typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/sphere.obj";       // Mesh to import
+string objectFile = "Meshes/cube86.mesh";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
@@ -301,16 +303,27 @@ private:
 
 int main(int argc, char **argv) {
 
+/*
+  #pragma omp parralel
+    for (int i = 0; i < 20; i++) {
+      cout<<i<<endl;
+    }
+
+  return 0;
+  */
+
+
   cout<<"FUSING CONSTRAINT PROJECTION"<<endl;
   auto start = chrono::steady_clock::now();
 
   Solver solver;
   solver.initScene();
 
-  //meshes[0].printVertexAndTrianglesAndEdges();
+  meshes[0].printVertexAndTrianglesAndEdges();
   auto initialisationTime = chrono::steady_clock::now();
   std::chrono::duration<double> initialisationSeconds = initialisationTime-start;
 
+  //return 0;
   for (int i = 0; i < nFrames; i++) {
       solver.update();
       scene->exportToOBJ(i);
