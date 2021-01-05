@@ -1,25 +1,8 @@
-#ifndef CONSTRAINT
-#define CONSTRAINT
-#include "vector3.cpp"
-#include <math.h>
+#include "constraint.h"
 using namespace std;
 
 
-
-class Constraint{
-public:
-  void project() {};
-};
-
-class LengthConstraint : public Constraint {
-public:
-
-  Vertex * A;
-  Vertex * B;
-  float initialLength;
-  float k;
-
-  void project() {
+  void LengthConstraint::project() {
     float d = (A->P - B->P).length();
     if((A->w + B->w)>0 && d>0.0000001){
     Vec3f dpA = -(A->w / (A->w + B->w)) * (d-initialLength) * (A->P - B->P) / d;
@@ -27,53 +10,35 @@ public:
 
     A->P += k*dpA;
     B->P += k*dpB;}
-
-
     }
-
   //constructor
-  LengthConstraint(Vertex* vA, Vertex* vB, float k_){
+  LengthConstraint::LengthConstraint(Vertex* vA, Vertex* vB, float k_){
     A = vA;
     B = vB;
     k = k_;
     initialLength = (A->X - B->X).length();
-
   }
-};
 
 
 
-class FixConstraint : public Constraint {
-public:
-
-  Vertex * V;
-  Vec3f initialPos;
-
-  void project() {
+  void FixConstraint::project() {
     V->P = initialPos;
   }
 
   //constructor
-  FixConstraint(Vertex* vertex) {
+  FixConstraint::FixConstraint(Vertex* vertex) {
     V = vertex;
     V->w = 0;
     initialPos = V->X;
   }
-};
 
 
 
 
-class BendConstraint : public Constraint {
-public:
-  Vertex* p1; // p1 and p2 are centrale vertices
-  Vertex* p2;
-  Vertex* p3;
-  Vertex* p4;
-  float phi0;
-  float kb;
 
-  void project() {
+
+
+  void BendConstraint::project() {
 
     float epsilon = 0.000001;
 
@@ -124,7 +89,7 @@ public:
   }
 
   //constructor
-  BendConstraint(Vertex* v1,Vertex* v2,Vertex* v3,Vertex* v4, float k_bending){
+  BendConstraint::BendConstraint(Vertex* v1,Vertex* v2,Vertex* v3,Vertex* v4, float k_bending){
     p1=v1;
     p2=v2;
     p3=v3;
@@ -149,33 +114,20 @@ public:
   }
 
 
-};
-class CollisionConstraint : public Constraint{
-public:
-  float k_bouncing;
-  Vertex* V;
-  Vec3f normal;
-  Vec3f collisionPoint;
-  Vec3f originalDirection;
-  Vec3f newDirection;
 
-  void project() {
+
+
+  void CollisionConstraint::project() {
     V->P = V->X + k_bouncing*(collisionPoint - V->P).length()*newDirection;
 
 
   }
 
   //constructor
-  CollisionConstraint(Vertex* vertex,Vec3f collisionPoint, Vertex t1, Vertex t2, Vertex t3, float k_bouncing ) {
+  CollisionConstraint::CollisionConstraint(Vertex* vertex,Vec3f collisionPoint, Vertex t1, Vertex t2, Vertex t3, float k_bouncing ) {
     V = vertex;
     normal = (t2.X-t1.X).crossProduct(t3.X-t2.X).normalize();
     this->collisionPoint = collisionPoint;
     originalDirection = (V->P - V->X).normalize();
     newDirection = (originalDirection + 2*normal).normalize();
   }
-
-};
-
-
-
-#endif

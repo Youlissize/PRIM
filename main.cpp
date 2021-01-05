@@ -10,10 +10,10 @@
 #include <set>
 #include <utility>
 #include <chrono>
-#include "mesh.cpp"
-#include "vector3.cpp"
-#include "constraint.cpp"
-#include "Scene.cpp"
+#include "mesh.h"
+#include "vector3.h"
+#include "constraint.h"
+#include "scene.h"
 
 using namespace std;
 typedef float Real;
