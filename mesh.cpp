@@ -160,42 +160,230 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
           for(int tri : edges[i].adjTri) {
             triangles[tri].edges.push_back(i);
           }
-        }
-*/
-        //Fill Vertices
 
-        for(int i=0; i<edges.size(); i++){
-          vertices[edges[i].A].adjEdg.push_back(i);
-          vertices[edges[i].B].adjEdg.push_back(i);
-        }
-        for(int i=0; i<triangles.size(); i++){
-          vertices[triangles[i].A].adjTri.push_back(i);
-          vertices[triangles[i].B].adjTri.push_back(i);
-          vertices[triangles[i].C].adjTri.push_back(i);
-        }
+              if (words[0].compare("v") == 0) {
+                  float x = stof(words[1]);
+                  float y = stof(words[2]);
+                  float z = stof(words[3]);
+                  if (z > maxY) maxY = z;
+                  if (z < minY) minY = z;
+                  vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<int>(),vector<int>()});
+                  meshVertices++;
+              }
 
-        file.close();
-        cout << "Successfully imported " << FILENAME << endl;
+              if(words[0].compare("usemtl") == 0){
+                  textures += line + '\n';
+              }
+               if (words[0].compare("vn") == 0){
+                  textures += line + '\n';
+                  meshNormals++;
+              }
+
+              if (words[0].compare("vt") == 0){
+                  textures += line + '\n';
+                  meshTextures++;
+              }
+
+              if (words[0].compare("f") == 0) {
+                  vector<string> vertex1, vertex2, vertex3;
+                  split(words[1],'/',back_inserter(vertex1));
+                  split(words[2],'/',back_inserter(vertex2));
+                  split(words[3],'/',back_inserter(vertex3));
+                  int a = stol(vertex1[0])-1;
+                  int b = stol(vertex2[0])-1;
+                  int c = stol(vertex3[0])-1;
+                  Triangle tri;
+                  tri.A=a;
+                  tri.B=b;
+                  tri.C=c;
+                  tri.edges = vector<int>();
+                  triangles.push_back(tri);
+                  if(vertex1[1] != ""){
+                  vector<int> tex{(int)stol(vertex1[1]),(int)stol(vertex2[1]),(int)stol(vertex3[1])};
+                  trianglesTextures.push_back(tex);}
+                  if(vertex1[2] != ""){
+                  vector<int> norm{(int)stol(vertex1[2]),(int)stol(vertex2[2]),(int)stol(vertex3[2])};
+                  trianglesNormals.push_back(norm);}
+
+
+                  // Fill edges
+                  if (a > b) { tempEdges.insert(make_pair(b, a));}
+                  else { tempEdges.insert(make_pair(a, b)); }
+
+                  if (c > b) { tempEdges.insert(make_pair(b, c)); }
+                  else { tempEdges.insert(make_pair(c, b)); }
+
+                  if (c > a) { tempEdges.insert(make_pair(a, c)); }
+                  else { tempEdges.insert(make_pair(c, a)); }
+              }
+          }
+          cout << maxY<< " * * " << minY<<  endl;
+
+
+          // Fill all data of the mesh
+          for (auto& e:tempEdges){
+              Edge edge;
+              edge.A=e.first;
+              edge.B=e.second;
+              edge.adjTri = vector<int>();
+              edges.push_back(edge);
+          }
+
+          //Fill Vertices Data
+          for(int i=0; i<edges.size(); i++){
+            vertices[edges[i].A].adjEdg.push_back(i);
+            vertices[edges[i].B].adjEdg.push_back(i);
+          }
+          for(int i=0; i<triangles.size(); i++){
+            vertices[triangles[i].A].adjTri.push_back(i);
+            vertices[triangles[i].B].adjTri.push_back(i);
+            vertices[triangles[i].C].adjTri.push_back(i);
+          }
+
+          file.close();
+          cout << "Successfully imported " << FILENAME << endl;
+      }
+      else {
+          cout << "WARNING : Failed to import " << FILENAME << endl;
+      }
+      string mtlFILENAME = FILENAME.substr(0,FILENAME.length() -4) + ".mtl";
+      ifstream mtlFile(mtlFILENAME);
+          if (mtlFile.is_open()) {
+          string line;
+          while (std::getline(mtlFile, line)) {
+                          mtlFileString += line + "\n";
+              }
+
+          file.close();
+          cout << "Successfully imported " << mtlFILENAME << endl;}
+
+      else {
+          cout << "WARNING : Failed to import " << mtlFILENAME << endl;
+      }
+
     }
+
+
+    // .mesh Format
+    else if(FILENAME.find(".mesh") != string::npos) {
+      cout<<"mesh format"<<endl;
+      this-> isTetraedral = true;
+      this-> meshName = FILENAME.substr(0,FILENAME.length() -5).substr(7) + "frame";
+      if (file.is_open()) {
+          string line;
+          vector<string> words;
+          set<pair<int,int>> tempEdges = set<pair<int,int>>();
+
+          while (std::getline(file, line)) {
+              words.clear();
+              split(line, ' ', back_inserter(words));
+              for (int i =0; i < words.size(); i++){
+                if (words[i] == "") words.erase(words.begin() + i);
+              }
+
+              if (words[0].compare("Vertices") == 0) {
+                words.clear();
+                std::getline(file,line);
+                this->meshVertices = stoi(line);
+
+                for (int i = 0; i<this->meshVertices; i++){
+                  words.clear();
+                  std::getline(file, line);
+                  split(line, ' ', back_inserter(words));
+                  for (int i =0; i < words.size(); i++){
+                    if (words[i] == "") words.erase(words.begin() + i);
+                  }
+                  float x = stof(words[0]);
+                  float y = stof(words[1]);
+                  float z = stof(words[2]);
+                  vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<int>(),vector<int>()});
+                }
+              }
+
+              else if (words[0].compare("Triangles") == 0) {
+                words.clear();
+                std::getline(file,line);
+                int nbTriangles = stoi(line);
+
+                for (int i = 0; i<nbTriangles; i++){
+                  words.clear();
+                  std::getline(file, line);
+                  split(line, ' ', back_inserter(words));
+                  for (int i =0; i < words.size(); i++){
+                    if (words[i] == "") words.erase(words.begin() + i);
+                  }
+                  int a = stoi(words[0])-1;
+                  int b = stoi(words[1])-1;
+                  int c = stoi(words[2])-1;
+                  triangles.push_back({a,b,c,vector<int>()});
+
+                  // Fill edges
+                  if (a > b) { tempEdges.insert(make_pair(b, a));}
+                  else { tempEdges.insert(make_pair(a, b)); }
+
+                  if (c > b) { tempEdges.insert(make_pair(b, c)); }
+                  else { tempEdges.insert(make_pair(c, b)); }
+
+                  if (c > a) { tempEdges.insert(make_pair(a, c)); }
+                  else { tempEdges.insert(make_pair(c, a)); }
+                }
+              }
+
+              else if (words[0].compare("Tetrahedra") == 0) {
+                words.clear();
+                getline(file,line);
+                int nbTetra = stoi(line);
+
+                for (int i = 0; i<nbTetra; i++){
+                  words.clear();
+                  std::getline(file, line);
+                  split(line, ' ', back_inserter(words));
+                  for (int i =0; i < words.size(); i++){
+                    if (words[i] == "") words.erase(words.begin() + i);
+                  }
+                  int a = stoi(words[0])-1;
+                  int b = stoi(words[1])-1;
+                  int c = stoi(words[2])-1;
+                  int d = stoi(words[3])-1;
+                  tetras.push_back({a,b,c,d});
+
+                }
+              }
+
+          }
+
+          // Fill Edges
+          for (auto& e:tempEdges){
+              Edge edge;
+              edge.A=e.first;
+              edge.B=e.second;
+              edge.adjTri = vector<int>();
+              edges.push_back(edge);
+          }
+
+          //Fill Vertices Data
+          for(int i=0; i<edges.size(); i++){
+            vertices[edges[i].A].adjEdg.push_back(i);
+            vertices[edges[i].B].adjEdg.push_back(i);
+          }
+          for(int i=0; i<triangles.size(); i++){
+            vertices[triangles[i].A].adjTri.push_back(i);
+            vertices[triangles[i].B].adjTri.push_back(i);
+            vertices[triangles[i].C].adjTri.push_back(i);
+          }
+
+          file.close();
+          cout << "Successfully imported " << FILENAME << endl;
+      }
+      else {
+          cout << "WARNING : Failed to import " << FILENAME << endl;
+      }
+    }
+
+    // Wrong Format
     else {
-        cout << "WARNING : Failed to import " << FILENAME << endl;
+      cout<<"WARNING : File Format not supported"<<endl;
     }
-    string mtlFILENAME = FILENAME.substr(0,FILENAME.length() -4) + ".mtl";
-    ifstream mtlFile(mtlFILENAME);
-        if (mtlFile.is_open()) {
-        string line;
-        while (std::getline(mtlFile, line)) {
-                        mtlFileString += line + "\n";
-            }
-
-        file.close();
-        cout << "Successfully imported " << mtlFILENAME << endl;}
-
-    else {
-        cout << "WARNING : Failed to import " << mtlFILENAME << endl;
-    }
-
-
 
   }
 
