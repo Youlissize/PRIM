@@ -37,6 +37,15 @@ struct Triangle{
 };
 
 
+struct Tetra {
+  int A;
+  int B;
+  int C;
+  int D;
+};
+
+
+
 class Mesh{
 public:
   long meshVertices= 0;
@@ -46,6 +55,7 @@ public:
   vector<Vertex> vertices;
   vector<Edge> edges;
   vector<Triangle> triangles;
+  vector<Tetra> tetras;
   vector<vector<int>> trianglesTextures;
   vector<vector<int>> trianglesNormals;
 
@@ -55,6 +65,7 @@ public:
   vector<Vec3f> acc; //acceleration
   vector<Real> w; //inverse of mass */
   bool isDeformable;
+  bool isTetraedral;
 
   string textures; //UV map of the texture
   string mtlFileString; //mtl File corresponding to the mesh

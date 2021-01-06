@@ -1,6 +1,7 @@
 #include "mesh.h"
-#include <vector>
 using namespace std;
+
+
 // for importation
 template <typename Out>
 void split(const std::string& s, char delim, Out result) {
@@ -44,121 +45,22 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
   Mesh::Mesh (string FILENAME,bool isDeformable,float vertexWeight) {
     this->isDeformable = isDeformable;
     ifstream file(FILENAME);
-    this-> meshName = FILENAME.substr(0,FILENAME.length() -4).substr(7) + "frame";
-    if (file.is_open()) {
-        string line;
-        set<pair<int,int>> tempEdges = set<pair<int,int>>();
-        float maxY = 0.f , maxX = 0.f, minX = 100.f , minY = 100.f;
-        int maxYIndex = -1;
-        while (std::getline(file, line)) {
-                //cout << line << endl;
-            vector<string> words;
-            split(line, ' ', back_inserter(words));
-        for (int i =0; i < words.size(); i++){
-            if (words[i] == "") words.erase(words.begin() + i);
-        }
 
-
-
-            if (words[0].compare("v") == 0) {
-                float x = stof(words[1]);
-                float y = stof(words[2]);
-                float z = stof(words[3]);
-                if (z > maxY) maxY = z;
-                if (z < minY) minY = z;
-                vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<int>(),vector<int>()});
-                meshVertices++;
-/*                Vertex v;
-                v.adjEdg = vector<int>();
-                v.adjTri = vector<int>();
-                vertices.push_back(v);*/
-            }
-
-            if(words[0].compare("usemtl") == 0){
-                textures += line + '\n';
-            }
-             if (words[0].compare("vn") == 0){
-                textures += line + '\n';
-                meshNormals++;
-            }
-
-            if (words[0].compare("vt") == 0){
-                textures += line + '\n';
-                meshTextures++;
-            }
-
-            if (words[0].compare("f") == 0) {
-                vector<string> vertex1, vertex2, vertex3;
-                split(words[1],'/',back_inserter(vertex1));
-                split(words[2],'/',back_inserter(vertex2));
-                split(words[3],'/',back_inserter(vertex3));
-                int a = stol(vertex1[0])-1;
-                int b = stol(vertex2[0])-1;
-                int c = stol(vertex3[0])-1;
-                Triangle tri;
-                tri.A=a;
-                tri.B=b;
-                tri.C=c;
-                tri.edges = vector<int>();
-                triangles.push_back(tri);
-                if(vertex1[1] != ""){
-                vector<int> tex{(int)stol(vertex1[1]),(int)stol(vertex2[1]),(int)stol(vertex3[1])};
-                trianglesTextures.push_back(tex);}
-                if(vertex1[2] != ""){
-                vector<int> norm{(int)stol(vertex1[2]),(int)stol(vertex2[2]),(int)stol(vertex3[2])};
-                trianglesNormals.push_back(norm);}
-
-
-                // Fill edges
-                if (a > b) { tempEdges.insert(make_pair(b, a));}
-                else { tempEdges.insert(make_pair(a, b)); }
-
-                if (c > b) { tempEdges.insert(make_pair(b, c)); }
-                else { tempEdges.insert(make_pair(c, b)); }
-
-                if (c > a) { tempEdges.insert(make_pair(a, c)); }
-                else { tempEdges.insert(make_pair(c, a)); }
-            }
-        }
-        cout << maxY<< " * * " << minY<<  endl;
-        // Fill all data of the mesh
-
-/*        P = vector<Vec3f>(X.size());using namespace std;
-
-        vel = vector<Vec3f>(X.size());
-        acc = vector<Vec3f>(X.size());
-        w = vector<Real>(X.size(),1); */ // Mass set by default at 1 for every vertex
-
-        for (auto& e:tempEdges){
-            Edge edge;
-            edge.A=e.first;
-            edge.B=e.second;
-            edge.adjTri = vector<int>();
-            edges.push_back(edge);
-        }
-/*
-        //Fill edge.adjTri - edges is here supposed to be sorted
-        for (int i=0; i<triangles.size(); i++) {
-          Triangle t = triangles[i];
-
-          Edge e = {.A=min(t.A,t.B), .B=max(t.A,t.B)};
-          int pos = findEdge(edges, e);
-          edges[pos].adjTri.push_back(i);
-
-          e = {.A=min(t.C,t.B), .B=max(t.C,t.B)};
-          pos = findEdge(edges, e);
-          edges[pos].adjTri.push_back(i);
-
-          e = {.A=min(t.C,t.A), .B=max(t.C,t.A)};
-          pos = findEdge(edges, e);
-          edges[pos].adjTri.push_back(i);
-
-        }
-
-        //Fill triangle.edges
-        for(int i=0; i<edges.size(); i++){
-          for(int tri : edges[i].adjTri) {
-            triangles[tri].edges.push_back(i);
+    // .obj Format
+    if(FILENAME.find(".obj") != string::npos) {
+      this-> isTetraedral = false;
+      this-> meshName = FILENAME.substr(0,FILENAME.length() -4).substr(7) + "frame";
+      if (file.is_open()) {
+          string line;
+          set<pair<int,int>> tempEdges = set<pair<int,int>>();
+          float maxY = 0.f , maxX = 0.f, minX = 100.f , minY = 100.f;
+          int maxYIndex = -1;
+          while (std::getline(file, line)) {
+                  //cout << line << endl;
+              vector<string> words;
+              split(line, ' ', back_inserter(words));
+          for (int i =0; i < words.size(); i++){
+              if (words[i] == "") words.erase(words.begin() + i);
           }
 
               if (words[0].compare("v") == 0) {

@@ -1,43 +1,7 @@
-#ifndef PROJCONSTRAINT
-#define PROJCONSTRAINT
-
-#include "eigen-3.3.9/Eigen/Sparse"
-#include "eigen-3.3.9/Eigen/Dense"
-#include "eigen-3.3.9/Eigen/SVD"
-#include "myVec3.cpp"
-
-typedef float Real;
-//typedef long int int;
-typedef Eigen::Matrix<float,Eigen::Dynamic,1> FloatVector;
-typedef Eigen::Matrix<MyVec3,Eigen::Dynamic,1> Vec3Vector;
-typedef Eigen::SparseMatrix<float> SparseMat;
-typedef Eigen::SparseMatrix<MyVec3> Vec3SparseMat;
-typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
-typedef Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> FloatMatrix;
-
-class FusingConstraint{
-
-public:
-  float w; //weigth of the constraint
-  bool AandBareIdentity;
-  SparseMat A;
-  SparseMat B;
-  SparseMat S;
-
-  void project(FloatVector q) {};
-  void addProjection(FloatVector& rs) {};
-
-};
-
-
-
-class FixConstraint : public FusingConstraint {
-public:
-  int v;
-  Vec3f initialPos;
+#include "fusingConstraint.h"
 
   //constructor
-  FixConstraint(int _v, FloatVector q,float _w) {
+  FixConstraint::FixConstraint(int _v, FloatVector q,float _w) {
     w =_w;
     v=_v;
     initialPos = Vec3f(q[3*v],q[3*v+1],q[3*v+2]);
@@ -51,33 +15,27 @@ public:
     MyS.convertToEigenFormat(S);
 
   }
-  void project(FloatVector q) {};
+  void FixConstraint::project(FloatVector q) {};
 
-  void addProjection(FloatVector& qn) {
+  void FixConstraint::addProjection(FloatVector& qn) {
     qn[3*v]+=w*initialPos.x;
     qn[3*v+1]+=w*initialPos.y;
     qn[3*v+2]+=w*initialPos.z;
   }
 
-  void fix(FloatVector& qn) {
+  void FixConstraint::fix(FloatVector& qn) {
     qn[3*v]=initialPos.x;
     qn[3*v+1]=initialPos.y;
     qn[3*v+2]=initialPos.z;
   }
-};
 
 
 
 
-class StrainConstraint: public FusingConstraint {
-   public :
-   int a,b,c;
-   Vec3f v1_init,v2_init,v3_init,v1,v2,v3,x,y,norm;
-   FloatMatrix Xg, Xf;
-   float sMin, sMax;
+
    //Constructor
 
-    StrainConstraint(int a, int b, int c, FloatVector qn, float w){
+    StrainConstraint::StrainConstraint(int a, int b, int c, FloatVector qn, float w){
     int N = qn.rows()/3;
     v1_init = Vec3f(qn[3*a],qn[3*a+1], qn[3*a+2]);
     v2_init = Vec3f(qn[3*b],qn[3*b+1], qn[3*b+2]);
@@ -141,7 +99,7 @@ class StrainConstraint: public FusingConstraint {
 
    }
 
-   FloatMatrix computeX (Vec3f vec1, Vec3f vec2, Vec3f vec3)
+   FloatMatrix StrainConstraint::computeX (Vec3f vec1, Vec3f vec2, Vec3f vec3)
     {
       norm = (vec3-vec1).crossProduct(vec3-vec2).normalize();
       x = (vec2-vec1).normalize();
@@ -155,7 +113,7 @@ class StrainConstraint: public FusingConstraint {
       return X;
     }
 
-    void project(FloatVector qn){
+    void StrainConstraint::project(FloatVector qn){
     v1 = Vec3f(qn[3*a],qn[3*a+1], qn[3*a+2]);
     v2 = Vec3f(qn[3*b],qn[3*b+1], qn[3*b+2]);
     v3 = Vec3f(qn[3*c],qn[3*c+1], qn[3*c+2]);
@@ -199,7 +157,7 @@ class StrainConstraint: public FusingConstraint {
 
 
     }
-    void addProjection(FloatVector& rs) {
+    void StrainConstraint::addProjection(FloatVector& rs) {
     rs[3*a] += w*v1.x;
     rs[3*a+1] += w*v1.y;
     rs[3*a+2] += w*v1.z;
@@ -211,22 +169,15 @@ class StrainConstraint: public FusingConstraint {
     rs[3*c+2] += w*v3.z;
      }
 
-};
-
-
-class StretchConstraint: public FusingConstraint {
-public:
-  float initialLength;
-  int v1,v2;
-  Vec3f dV1,dV2,q1,q2;
 
 
 
-  void project(FloatVector q)  {
+
+  void StretchConstraint::project(FloatVector q)  {
     q1 = Vec3f(q[3*v1],q[3*v1+1],q[3*v1+2]);
     q2 = Vec3f(q[3*v2],q[3*v2+1],q[3*v2+2]);
 
-    float d = length(q1-q2);
+    float d = (q1-q2).length();
     if(d>0.000001){
       dV1 = 1.f/w*q1-0.5f * (d-initialLength) * (q1 - q2) / d;
       dV2 = 1.f/w*q2+0.5f * (d-initialLength) * (q1 - q2) / d;
@@ -234,7 +185,7 @@ public:
 
   }
 
-  void addProjection(FloatVector& rs) {
+  void StretchConstraint::addProjection(FloatVector& rs) {
     rs[3*v1] += w*dV1.x;
     rs[3*v1+1] += w*dV1.y;
     rs[3*v1+2] += w*dV1.z;
@@ -247,7 +198,7 @@ public:
 
 
   //constructor
-  StretchConstraint (int _v1, int _v2, FloatVector qn,float _w) {
+  StretchConstraint::StretchConstraint (int _v1, int _v2, FloatVector qn,float _w) {
     w=_w;
     v1=_v1;
     v2=_v2;
@@ -268,16 +219,5 @@ public:
     MyS.convertToEigenFormat(S);
 
 
-    this-> initialLength = length(q1-q2);
+    this-> initialLength = (q1-q2).length();
   }
-
-
-
-
-
-};
-
-
-
-
-#endif

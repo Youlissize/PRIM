@@ -14,20 +14,19 @@
 #include <chrono>
 #include <omp.h>
 //#include <execution>
-#include "mesh.cpp"
-#include "vector3.cpp"
-#include "mySparseMatrix.cpp"
-#include "fusingConstraint.cpp"
-#include "Scene.cpp"
-#include "myVec3.cpp"
+#include "mesh.h"
+#include "vector3.h"
+#include "mySparseMatrix.h"
+#include "fusingConstraint.h"
+#include "scene.h"
 
 using namespace std;
 typedef float Real;
 //typedef long int int;
 typedef Eigen::Matrix<float,Eigen::Dynamic,1> FloatVector;
-typedef Eigen::Matrix<MyVec3,Eigen::Dynamic,1> Vec3Vector;
+//typedef Eigen::Matrix<MyVec3,Eigen::Dynamic,1> Vec3Vector;
 typedef Eigen::SparseMatrix<float> SparseMat;
-typedef Eigen::SparseMatrix<MyVec3> Vec3SparseMat;
+//typedef Eigen::SparseMatrix<MyVec3> Vec3SparseMat;
 typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
 
 
