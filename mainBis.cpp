@@ -36,7 +36,7 @@ typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/cube86.mesh";       // Mesh to import
+string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
@@ -166,7 +166,7 @@ public:
 
       //StretchConstraints
       if(true) {
-        float stretchWeight = 0.5f;
+        float stretchWeight = 0.8f;
         int offset = 0;
         for(auto& mesh : meshes){
           for(auto& e :mesh.edges){

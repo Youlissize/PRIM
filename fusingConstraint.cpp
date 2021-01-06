@@ -47,6 +47,7 @@
     Xg = computeX(v1_init,v2_init,v3_init);
     AandBareIdentity = false;
     A=SparseMat();
+    B=SparseMat();
     MySparseMatrix MyA = MySparseMatrix(3*N,3*N);
     MyA(3*a,3*a)=2.0f/3.0f;
     MyA(3*a+1,3*a+1)=2.0f/3.0f;
@@ -179,8 +180,8 @@
 
     float d = (q1-q2).length();
     if(d>0.000001){
-      dV1 = 1.f/w*q1-0.5f * (d-initialLength) * (q1 - q2) / d;
-      dV2 = 1.f/w*q2+0.5f * (d-initialLength) * (q1 - q2) / d;
+      dV1 = (q1 - 0.5f * (d-initialLength) * (q1 - q2) / d);
+      dV2 = (q2 + 0.5f * (d-initialLength) * (q1 - q2) / d);
     }
 
   }
@@ -205,26 +206,9 @@
     int N = qn.rows()/3;
     q1 = Vec3f(qn[3*_v1],qn[3*_v1+1],qn[3*_v1+2]);
     q2 = Vec3f(qn[3*_v2],qn[3*_v2+1],qn[3*_v2+2]);
-    AandBareIdentity = false;
+    AandBareIdentity = true;
     A=SparseMat();
     B=SparseMat();
-    MySparseMatrix MyA = MySparseMatrix(3*N,3*N);
-    MyA(3*v1,3*v1)=1.0f/2.0f;
-    MyA(3*v1+1,3*v1+1)=1.0f/2.0f;
-    MyA(3*v1+2,3*v1+2)=1.0f/2.0f;
-    MyA(3*v2,3*v2)=1.0f/2.0f;
-    MyA(3*v2+1,3*v2+1)=1.0f/2.0f;
-    MyA(3*v2+2,3*v2+2)=1.0f/2.0f;
-
-    MyA(3*v1,3*v2)=-1.0f/2.0f;
-    MyA(3*v1+1,3*v2+1)=-1.0f/2.0f;
-    MyA(3*v1+2,3*v2+2)=-1.0f/2.0f;
-    MyA(3*v2,3*v1)=-1.0f/2.0f;
-    MyA(3*v2+1,3*v1+1)=-1.0f/2.0f;
-    MyA(3*v2+2,3*v1+2)=-1.0f/2.0f;
-
-    MyA.convertToEigenFormat(A);
-    B=A;
     S = SparseMat();
     MySparseMatrix MyS = MySparseMatrix(3*N,3*N);
     MyS(3*v1,3*v1)=1.f;
