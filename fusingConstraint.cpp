@@ -205,9 +205,26 @@
     int N = qn.rows()/3;
     q1 = Vec3f(qn[3*_v1],qn[3*_v1+1],qn[3*_v1+2]);
     q2 = Vec3f(qn[3*_v2],qn[3*_v2+1],qn[3*_v2+2]);
-    AandBareIdentity = true;
+    AandBareIdentity = false;
     A=SparseMat();
     B=SparseMat();
+    MySparseMatrix MyA = MySparseMatrix(3*N,3*N);
+    MyA(3*v1,3*v1)=1.0f/2.0f;
+    MyA(3*v1+1,3*v1+1)=1.0f/2.0f;
+    MyA(3*v1+2,3*v1+2)=1.0f/2.0f;
+    MyA(3*v2,3*v2)=1.0f/2.0f;
+    MyA(3*v2+1,3*v2+1)=1.0f/2.0f;
+    MyA(3*v2+2,3*v2+2)=1.0f/2.0f;
+
+    MyA(3*v1,3*v2)=-1.0f/2.0f;
+    MyA(3*v1+1,3*v2+1)=-1.0f/2.0f;
+    MyA(3*v1+2,3*v2+2)=-1.0f/2.0f;
+    MyA(3*v2,3*v1)=-1.0f/2.0f;
+    MyA(3*v2+1,3*v1+1)=-1.0f/2.0f;
+    MyA(3*v2+2,3*v1+2)=-1.0f/2.0f;
+
+    MyA.convertToEigenFormat(A);
+    B=A;
     S = SparseMat();
     MySparseMatrix MyS = MySparseMatrix(3*N,3*N);
     MyS(3*v1,3*v1)=1.f;

@@ -153,7 +153,7 @@ public:
 
       // Create constraints
       //Strain Constraints
-      if(true) {
+      if(false) {
         float strainWeight = 10.0f;
         int offset = 0;
         for(auto& mesh : meshes){
@@ -165,7 +165,7 @@ public:
       }
 
       //StretchConstraints
-      if(false) {
+      if(true) {
         float stretchWeight = 0.5f;
         int offset = 0;
         for(auto& mesh : meshes){
