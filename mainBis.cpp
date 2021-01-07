@@ -40,7 +40,7 @@ string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 100;
+int nFrames = 200;
 Real h = 0.05;                     // time step
 int solverIteration = 4;
 
@@ -153,7 +153,7 @@ public:
 
       // Create constraints
       //Strain Constraints
-      if(false) {
+      if(true) {
         float strainWeight = 10.0f;
         int offset = 0;
         for(auto& mesh : meshes){
@@ -166,7 +166,7 @@ public:
 
       //StretchConstraints
       if(true) {
-        float stretchWeight = 0.8f;
+        float stretchWeight = 10.0f;
         int offset = 0;
         for(auto& mesh : meshes){
           for(auto& e :mesh.edges){
