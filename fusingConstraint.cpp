@@ -159,6 +159,7 @@
 
     }
     void StrainConstraint::addProjection(FloatVector& rs) {
+      if(AandBareIdentity==false){
           FloatVector pi = FloatVector(rs.rows());
           pi[3*a] = w*v1.x;
           pi[3*a+1] = w*v1.y;
@@ -171,16 +172,19 @@
           pi[3*c+2] = w*v3.z;
           pi = S.transpose()*A.transpose()*B*pi;
           rs += pi;
-  /*  rs[3*a] += w*v1.x;
-    rs[3*a+1] += w*v1.y;
-    rs[3*a+2] += w*v1.z;
-    rs[3*b] += w*v2.x;
-    rs[3*b+1] += w*v2.y;
-    rs[3*b+2] += w*v2.z;
-    rs[3*c] += w*v3.x;
-    rs[3*c+1] += w*v3.y;
-    rs[3*c+2] += w*v3.z;*/
-     }
+    }
+    else {
+      rs[3*a] += w*v1.x;
+      rs[3*a+1] += w*v1.y;
+      rs[3*a+2] += w*v1.z;
+      rs[3*b] += w*v2.x;
+      rs[3*b+1] += w*v2.y;
+      rs[3*b+2] += w*v2.z;
+      rs[3*c] += w*v3.x;
+      rs[3*c+1] += w*v3.y;
+      rs[3*c+2] += w*v3.z;
+    }
+  }
 
 
 
@@ -199,15 +203,26 @@
   }
 
   void StretchConstraint::addProjection(FloatVector& rs) {
-    FloatVector pi = FloatVector(rs.rows());
-    pi[3*v1] = w*dV1.x;
-    pi[3*v1+1] = w*dV1.y;
-    pi[3*v1+2] = w*dV1.z;
-    pi[3*v2] = w*dV2.x;
-    pi[3*v2+1] = w*dV2.y;
-    pi[3*v2+2] = w*dV2.z;
-    pi = S.transpose()*A.transpose()*B*pi;
-    rs += pi;
+    if (AandBareIdentity==false) {
+      FloatVector pi = FloatVector(rs.rows());
+      pi[3*v1] = w*dV1.x;
+      pi[3*v1+1] = w*dV1.y;
+      pi[3*v1+2] = w*dV1.z;
+      pi[3*v2] = w*dV2.x;
+      pi[3*v2+1] = w*dV2.y;
+      pi[3*v2+2] = w*dV2.z;
+      pi = S.transpose()*A.transpose()*B*pi;
+      rs += pi;
+    }
+    else {
+      rs[3*v1] += w*dV1.x;
+      rs[3*v1+1] += w*dV1.y;
+      rs[3*v1+2] += w*dV1.z;
+      rs[3*v2] += w*dV2.x;
+      rs[3*v2+1] += w*dV2.y;
+      rs[3*v2+2] += w*dV2.z;
+    }
+
   };
 
 
@@ -221,7 +236,7 @@
     int N = qn.rows()/3;
     q1 = Vec3f(qn[3*_v1],qn[3*_v1+1],qn[3*_v1+2]);
     q2 = Vec3f(qn[3*_v2],qn[3*_v2+1],qn[3*_v2+2]);
-    AandBareIdentity = false;
+    AandBareIdentity = false; 
     A=SparseMat();
     B=SparseMat();
     MySparseMatrix MyA = MySparseMatrix(3*N,3*N);
