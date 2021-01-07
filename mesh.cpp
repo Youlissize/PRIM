@@ -249,6 +249,25 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
                   int d = stoi(words[3])-1;
                   tetras.push_back({a,b,c,d});
 
+                  // Fill edges
+                  if (a > b) { tempEdges.insert(make_pair(b, a));}
+                  else { tempEdges.insert(make_pair(a, b)); }
+
+                  if (c > b) { tempEdges.insert(make_pair(b, c)); }
+                  else { tempEdges.insert(make_pair(c, b)); }
+
+                  if (c > a) { tempEdges.insert(make_pair(a, c)); }
+                  else { tempEdges.insert(make_pair(c, a)); }
+
+                  if (a > d) { tempEdges.insert(make_pair(d, a));}
+                  else { tempEdges.insert(make_pair(a, d)); }
+
+                  if (d > b) { tempEdges.insert(make_pair(b, d)); }
+                  else { tempEdges.insert(make_pair(d, b)); }
+
+                  if (c > d) { tempEdges.insert(make_pair(d, c)); }
+                  else { tempEdges.insert(make_pair(c, d)); }
+
                 }
               }
 
