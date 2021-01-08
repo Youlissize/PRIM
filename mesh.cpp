@@ -247,6 +247,7 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
                   int b = stoi(words[1])-1;
                   int c = stoi(words[2])-1;
                   int d = stoi(words[3])-1;
+
                   tetras.push_back({a,b,c,d});
 
                   // Fill edges
@@ -293,8 +294,20 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
             vertices[triangles[i].C].adjTri.push_back(i);
           }
 
+
           file.close();
           cout << "Successfully imported " << FILENAME << endl;
+
+          for (auto t : tetras){
+            Vec3f v1 = vertices[t.A].X - vertices[t.D].X;
+            Vec3f v2 = vertices[t.B].X - vertices[t.D].X;
+            Vec3f v3 = vertices[t.C].X - vertices[t.D].X;
+            if ((v1.crossProduct(v2)).dotProduct(v3) > 0){
+              auto temp = t.A;
+              t.A = t.B;
+              t.B = temp;
+            }
+          }
       }
       else {
           cout << "WARNING : Failed to import " << FILENAME << endl;

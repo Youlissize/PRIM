@@ -36,7 +36,7 @@ typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/blueCube.obj";       // Mesh to import
+string objectFile = "Meshes/cube86.mesh";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
@@ -45,7 +45,7 @@ Real h = 0.05;                     // time step
 int solverIteration = 4;
 
 // Coefficients
-Vec3f  _g = Vec3f(0, -9.8, 0);                    // gravity
+Vec3f  _g = Vec3f(0, 0, 0);                    // gravity
 
 // Variables
 int N; //total number of vertices
@@ -62,6 +62,7 @@ Eigen::SimplicialLDLT< Eigen::SparseMatrix<float> > _LHS_LDLT; //LinearSystem so
 vector<FixConstraint> fixConstraints = vector<FixConstraint>();
 vector<StrainConstraint> strainConstraints = vector<StrainConstraint>();
 vector<StretchConstraint> stretchConstraints = vector<StretchConstraint>();
+vector<VolumeConstraint> volumeConstraints = vector<VolumeConstraint>();
 
 
 
@@ -165,9 +166,9 @@ public:
       }
 
       //StretchConstraints
-      if(true) {
+      if(false) {
         float stretchWeight = 10.0f;
-        int offset = 0;
+        int offset = 10.0f;
         for(auto& mesh : meshes){
           for(auto& e :mesh.edges){
             stretchConstraints.push_back( StretchConstraint(e.A+offset,e.B+offset,qn,stretchWeight) );
@@ -177,8 +178,8 @@ public:
       }
 
       // FixConstraints
-      if(true){
-        float fixWeight = 1.0f;
+      if(false){
+        float fixWeight = 10000.0f;
         fixConstraints.push_back(FixConstraint(2,qn,fixWeight));
         //fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
         /*
@@ -188,7 +189,19 @@ public:
             }
         */
       }
-
+      // VolumeConstraints
+      if(true){
+        float volumeWeight = 1.0f;
+        int offset = 0;
+        for(auto& mesh : meshes){
+          if(mesh.isTetraedral){
+          for(auto& t :mesh.tetras){
+            volumeConstraints.push_back( VolumeConstraint(t.A+offset,t.B+offset,t.C+offset,t.D+ offset,qn,volumeWeight) );
+          }
+          offset += mesh.meshVertices;
+        }
+      }
+      }
 
       //Precompute system for global solving
       SparseMat leftSide = M / (h*h); //Matrix on the left side of equation (10)
@@ -218,7 +231,14 @@ public:
           leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
         }
       }
-
+      for (auto& c : volumeConstraints) {
+        if(c.AandBareIdentity){
+          leftSide += c.w * c.S.transpose() * c.S;
+        }
+        else {
+          leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
+        }
+      }
       _LHS_LDLT.analyzePattern( leftSide );
       _LHS_LDLT.compute( leftSide );
 
@@ -249,6 +269,10 @@ public:
       for(auto& st : stretchConstraints) {
         st.project(qn1);
       }
+      #pragma omp parallel
+      for(auto& vc : volumeConstraints) {
+        vc.project(qn1);
+      }
 
       // update rightSide
       for(auto& st : strainConstraints) {
@@ -260,7 +284,9 @@ public:
       for(auto& fc : fixConstraints){ // Maybe useless
         fc.addProjection(rightSide);
       }
-
+      for(auto& vc : volumeConstraints){ // Maybe useless
+        vc.addProjection(rightSide);
+      }
       //Global Solve
       qn1 = _LHS_LDLT.solve( rightSide );
     }
@@ -303,14 +329,7 @@ private:
 
 int main(int argc, char **argv) {
 
-/*
-  #pragma omp parralel
-    for (int i = 0; i < 20; i++) {
-      cout<<i<<endl;
-    }
 
-  return 0;
-  */
 
 
   cout<<"FUSING CONSTRAINT PROJECTION"<<endl;

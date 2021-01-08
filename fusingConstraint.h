@@ -72,6 +72,19 @@ public:
 
   };
 
+  class VolumeConstraint: public FusingConstraint {
+         public :
+         int a,b,c,d;
+         Vec3f v1_init,v2_init,v3_init,v4_init,v1,v2,v3,v4,norm;
+         FloatMatrix Xg, Xf;
+         float sMin, sMax;
+         VolumeConstraint(int a, int b, int c, int d, FloatVector qn, float w);
+         FloatMatrix computeX (Vec3f vec1, Vec3f vec2, Vec3f vec3, Vec3f vec4);
+         void project(FloatVector qn);
+         void addProjection(FloatVector& rs) ;
+  };
+
+
 
 
 
