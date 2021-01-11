@@ -36,7 +36,7 @@ typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/tet.mesh";       // Mesh to import
+string objectFile;       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
@@ -191,7 +191,7 @@ public:
       }
       // VolumeConstraints
       if(true){
-        float volumeWeight = 10000.0f;
+        float volumeWeight = 10.0f;
         int offset = 0;
         for(auto& mesh : meshes){
           if(mesh.isTetraedral){
@@ -327,9 +327,19 @@ private:
 
 
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
 
-
+  if(argc==1){
+    cout<<"no input file"<<endl;
+    return 0;
+  }
+  if(argc==2) {
+      objectFile = argv[1];
+  }
+  else {
+    cout<<"Too much arguments"<<endl;
+    return 0;
+  }
 
 
   cout<<"FUSING CONSTRAINT PROJECTION"<<endl;
