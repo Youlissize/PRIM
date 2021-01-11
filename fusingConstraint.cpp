@@ -304,8 +304,8 @@ VolumeConstraint::VolumeConstraint(int a, int b, int c,int d, FloatVector qn, fl
   MyS(3*d+1,3*d+1)=1.f;
   MyS(3*d+2,3*d+2)=1.f;
   MyS.convertToEigenFormat(S);
-  sMin = 0.95;
-  sMax = 1.05;
+  sMin = 0.999;
+  sMax = 1.001;
 
 }
 FloatMatrix VolumeConstraint::computeX (Vec3f vec1, Vec3f vec2, Vec3f vec3, Vec3f vec4){

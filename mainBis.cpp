@@ -36,16 +36,16 @@ typedef Eigen::DiagonalMatrix<float,Eigen::Dynamic> DiagMatrix;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/cube86.mesh";       // Mesh to import
+string objectFile = "Meshes/tet.mesh";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 100;
-Real h = 0.05;                     // time step
-int solverIteration = 4;
+int nFrames = 250;
+Real h = 1.0f/24.0f;                     // time step
+int solverIteration = 10;
 
 // Coefficients
-Vec3f  _g = Vec3f(0, 0, 0);                    // gravity
+Vec3f  _g = Vec3f(0, -9.8f, 0);                    // gravity
 
 // Variables
 int N; //total number of vertices
@@ -178,9 +178,9 @@ public:
       }
 
       // FixConstraints
-      if(false){
+      if(true){
         float fixWeight = 10000.0f;
-        fixConstraints.push_back(FixConstraint(2,qn,fixWeight));
+        fixConstraints.push_back(FixConstraint(0,qn,fixWeight));
         //fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
         /*
         for (int i =0; i < meshes[0].vertices.size(); ++i){
@@ -191,7 +191,7 @@ public:
       }
       // VolumeConstraints
       if(true){
-        float volumeWeight = 1.0f;
+        float volumeWeight = 10000.0f;
         int offset = 0;
         for(auto& mesh : meshes){
           if(mesh.isTetraedral){
