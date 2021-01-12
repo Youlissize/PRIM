@@ -304,12 +304,14 @@ VolumeConstraint::VolumeConstraint(int a, int b, int c,int d, FloatVector qn, fl
   MyS(3*d+1,3*d+1)=1.f;
   MyS(3*d+2,3*d+2)=1.f;
   MyS.convertToEigenFormat(S);
-  sMin = 0.999;
-  sMax = 1.001;
+  sMin = 0.95;
+  sMax = 1.05;
 
 }
 FloatMatrix VolumeConstraint::computeX (Vec3f vec1, Vec3f vec2, Vec3f vec3, Vec3f vec4){
   FloatMatrix X = FloatMatrix(3,3);
+  float norm1,norm2,norm3;
+
   X(0,0) = (vec1-vec4).x;
   X(1,0) = (vec1-vec4).y;
   X(2,0) = (vec1-vec4).z;
@@ -342,14 +344,14 @@ void VolumeConstraint::project(FloatVector qn){
       if(sigma[i] > sMax) sigma[i] = sMax;
       }
       if (m.determinant() <0 ){
-        sigma *= -1;
+        sigma[2] *= -1;
       }
   FloatMatrix t = svdStruct.matrixU()*sigma.asDiagonal()*svdStruct.matrixV().transpose();
 
   t = t*Xg; // ******************************************************************************               Multiplication logique mais douteuse, � tester sans !
 
   v1 = v4 + Vec3f(t(0,0),t(1,0),t(2,0));
-  v2 = v4 + Vec3f(t(0,1),t(1,0),t(2,1));
+  v2 = v4 + Vec3f(t(0,1),t(1,1),t(2,1));
   v3 = v4 + Vec3f(t(0,2),t(1,2),t(2,2));
 
 
