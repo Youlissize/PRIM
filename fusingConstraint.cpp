@@ -285,8 +285,6 @@ VolumeConstraint::VolumeConstraint(int a, int b, int c,int d, FloatVector qn, fl
   this->d = d;
   this->w = w;
 
-  AandBareIdentity = true;
-
   Xg = computeX  (v1_init,v2_init,v3_init,v4_init);
 
   S = SparseMat();
@@ -304,8 +302,69 @@ VolumeConstraint::VolumeConstraint(int a, int b, int c,int d, FloatVector qn, fl
   MyS(3*d+1,3*d+1)=1.f;
   MyS(3*d+2,3*d+2)=1.f;
   MyS.convertToEigenFormat(S);
-  sMin = 0.95;
-  sMax = 1.05;
+  sMin = 0.999;
+  sMax = 1.001;
+
+  AandBareIdentity = false;
+
+  A=SparseMat();
+  B=SparseMat();
+  MySparseMatrix MyA = MySparseMatrix(3*N,3*N);
+  MyA(3*a,3*a)=3.0f/4.0f;
+  MyA(3*a+1,3*a+1)=3.0f/4.0f;
+  MyA(3*a+2,3*a+2)=3.0f/4.0f;
+  MyA(3*b,3*b)=3.0f/4.0f;
+  MyA(3*b+1,3*b+1)=3.0f/4.0f;
+  MyA(3*b+2,3*b+2)=3.0f/4.0f;
+  MyA(3*c,3*c)=3.0f/4.0f;
+  MyA(3*c+1,3*c+1)=3.0f/4.0f;
+  MyA(3*c+2,3*c+2)=3.0f/4.0f;
+  MyA(3*d,3*d)=3.0f/4.0f;
+  MyA(3*d+1,3*d+1)=3.0f/4.0f;
+  MyA(3*d+2,3*d+2)=3.0f/4.0f;
+
+  MyA(3*a,3*b)=-1.0f/4.0f;
+  MyA(3*a+1,3*b+1)=-1.0f/4.0f;
+  MyA(3*a+2,3*b+2)=-1.0f/4.0f;
+  MyA(3*a,3*c)=-1.0f/4.0f;
+  MyA(3*a+1,3*c+1)=-1.0f/4.0f;
+  MyA(3*a+2,3*c+2)=-1.0f/4.0f;
+  MyA(3*a,3*d)=-1.0f/4.0f;
+  MyA(3*a+1,3*d+1)=-1.0f/4.0f;
+  MyA(3*a+2,3*d+2)=-1.0f/4.0f;
+
+  MyA(3*b,3*a)=-1.0f/4.0f;
+  MyA(3*b+1,3*a+1)=-1.0f/4.0f;
+  MyA(3*b+2,3*a+2)=-1.0f/4.0f;
+  MyA(3*b,3*c)=-1.0f/4.0f;
+  MyA(3*b+1,3*c+1)=-1.0f/4.0f;
+  MyA(3*b+2,3*c+2)=-1.0f/4.0f;
+  MyA(3*b,3*d)=-1.0f/4.0f;
+  MyA(3*b+1,3*d+1)=-1.0f/4.0f;
+  MyA(3*b+2,3*d+2)=-1.0f/4.0f;
+
+  MyA(3*c,3*b)=-1.0f/4.0f;
+  MyA(3*c+1,3*b+1)=-1.0f/4.0f;
+  MyA(3*c+2,3*b+2)=-1.0f/4.0f;
+  MyA(3*c,3*a)=-1.0f/4.0f;
+  MyA(3*c+1,3*a+1)=-1.0f/4.0f;
+  MyA(3*c+2,3*a+2)=-1.0f/4.0f;
+  MyA(3*c,3*d)=-1.0f/4.0f;
+  MyA(3*c+1,3*d+1)=-1.0f/4.0f;
+  MyA(3*c+2,3*d+2)=-1.0f/4.0f;
+
+  MyA(3*d,3*b)=-1.0f/4.0f;
+  MyA(3*d+1,3*b+1)=-1.0f/4.0f;
+  MyA(3*d+2,3*b+2)=-1.0f/4.0f;
+  MyA(3*d,3*c)=-1.0f/4.0f;
+  MyA(3*d+1,3*c+1)=-1.0f/4.0f;
+  MyA(3*d+2,3*c+2)=-1.0f/4.0f;
+  MyA(3*d,3*a)=-1.0f/4.0f;
+  MyA(3*d+1,3*a+1)=-1.0f/4.0f;
+  MyA(3*d+2,3*a+2)=-1.0f/4.0f;
+
+  MyA.convertToEigenFormat(A);
+  B=A;
 
 }
 FloatMatrix VolumeConstraint::computeX (Vec3f vec1, Vec3f vec2, Vec3f vec3, Vec3f vec4){
