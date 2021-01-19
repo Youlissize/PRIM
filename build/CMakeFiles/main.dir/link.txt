@@ -1,0 +1,1 @@
+/usr/bin/c++  -O3 -DNDEBUG  -rdynamic CMakeFiles/main.dir/main.cpp.o CMakeFiles/main.dir/scene.cpp.o CMakeFiles/main.dir/mesh.cpp.o CMakeFiles/main.dir/constraint.cpp.o  -o main 

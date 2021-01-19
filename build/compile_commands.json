@@ -1,0 +1,42 @@
+[
+{
+  "directory": "/home/guillaume/Documents/PRIM/PRIM/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -O3 -std=gnu++11 -o CMakeFiles/mainBis.dir/mainBis.cpp.o -c /home/guillaume/Documents/PRIM/PRIM/mainBis.cpp",
+  "file": "/home/guillaume/Documents/PRIM/PRIM/mainBis.cpp"
+},
+{
+  "directory": "/home/guillaume/Documents/PRIM/PRIM/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -O3 -std=gnu++11 -o CMakeFiles/mainBis.dir/scene.cpp.o -c /home/guillaume/Documents/PRIM/PRIM/scene.cpp",
+  "file": "/home/guillaume/Documents/PRIM/PRIM/scene.cpp"
+},
+{
+  "directory": "/home/guillaume/Documents/PRIM/PRIM/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -O3 -std=gnu++11 -o CMakeFiles/mainBis.dir/mesh.cpp.o -c /home/guillaume/Documents/PRIM/PRIM/mesh.cpp",
+  "file": "/home/guillaume/Documents/PRIM/PRIM/mesh.cpp"
+},
+{
+  "directory": "/home/guillaume/Documents/PRIM/PRIM/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -O3 -std=gnu++11 -o CMakeFiles/mainBis.dir/fusingConstraint.cpp.o -c /home/guillaume/Documents/PRIM/PRIM/fusingConstraint.cpp",
+  "file": "/home/guillaume/Documents/PRIM/PRIM/fusingConstraint.cpp"
+},
+{
+  "directory": "/home/guillaume/Documents/PRIM/PRIM/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -O3 -std=gnu++11 -o CMakeFiles/main.dir/main.cpp.o -c /home/guillaume/Documents/PRIM/PRIM/main.cpp",
+  "file": "/home/guillaume/Documents/PRIM/PRIM/main.cpp"
+},
+{
+  "directory": "/home/guillaume/Documents/PRIM/PRIM/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -O3 -std=gnu++11 -o CMakeFiles/main.dir/scene.cpp.o -c /home/guillaume/Documents/PRIM/PRIM/scene.cpp",
+  "file": "/home/guillaume/Documents/PRIM/PRIM/scene.cpp"
+},
+{
+  "directory": "/home/guillaume/Documents/PRIM/PRIM/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -O3 -std=gnu++11 -o CMakeFiles/main.dir/mesh.cpp.o -c /home/guillaume/Documents/PRIM/PRIM/mesh.cpp",
+  "file": "/home/guillaume/Documents/PRIM/PRIM/mesh.cpp"
+},
+{
+  "directory": "/home/guillaume/Documents/PRIM/PRIM/build",
+  "command": "/usr/bin/c++    -O3 -DNDEBUG   -O3 -std=gnu++11 -o CMakeFiles/main.dir/constraint.cpp.o -c /home/guillaume/Documents/PRIM/PRIM/constraint.cpp",
+  "file": "/home/guillaume/Documents/PRIM/PRIM/constraint.cpp"
+}
+]

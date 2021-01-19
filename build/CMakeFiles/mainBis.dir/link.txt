@@ -1,0 +1,1 @@
+/usr/bin/c++  -O3 -DNDEBUG  -rdynamic CMakeFiles/mainBis.dir/mainBis.cpp.o CMakeFiles/mainBis.dir/scene.cpp.o CMakeFiles/mainBis.dir/mesh.cpp.o CMakeFiles/mainBis.dir/fusingConstraint.cpp.o  -o mainBis 
