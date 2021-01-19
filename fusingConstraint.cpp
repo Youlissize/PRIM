@@ -302,8 +302,8 @@ VolumeConstraint::VolumeConstraint(int a, int b, int c,int d, FloatVector qn, fl
   MyS(3*d+1,3*d+1)=1.f;
   MyS(3*d+2,3*d+2)=1.f;
   MyS.convertToEigenFormat(S);
-  sMin = 0.999;
-  sMax = 1.001;
+  sMin = 0.8;
+  sMax = 1.2;
 
   AandBareIdentity = false;
 
@@ -399,8 +399,11 @@ void VolumeConstraint::project(FloatVector qn){
   //Clamping values
   for (int i =0; i <3; ++i){
     //cout << sigma[i] << endl;
-      if(sigma[i] < sMin) sigma[i] = sMin;
+    /*
+      if(sigma[i] < sMin) sigma[i] = sMin; // hard clamping
       if(sigma[i] > sMax) sigma[i] = sMax;
+    */
+      sigma[i] = (sigma[i]-1)*0.99 + 1; // smooth
       }
       if (m.determinant() <0 ){
         sigma[2] *= -1;

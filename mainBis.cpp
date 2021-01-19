@@ -40,12 +40,12 @@ string objectFile;       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 50;
+int nFrames = 150;
 Real h = 1.0f/24.0f;                     // time step
 int solverIteration = 6;
 
 // Coefficients
-Vec3f  _g = Vec3f(0, -9.8f, 0);                    // gravity
+Vec3f  _g = Vec3f(0, 0, 0);                    // gravity
 
 // Variables
 int N; //total number of vertices
@@ -168,7 +168,7 @@ public:
       //StretchConstraints
       if(false) {
         float stretchWeight = 10.0f;
-        int offset = 10.0f;
+        int offset = 0;
         for(auto& mesh : meshes){
           for(auto& e :mesh.edges){
             stretchConstraints.push_back( StretchConstraint(e.A+offset,e.B+offset,qn,stretchWeight) );
@@ -178,7 +178,7 @@ public:
       }
 
       // FixConstraints
-      if(true){
+      if(false){
         float fixWeight = 100000.0f;
         fixConstraints.push_back(FixConstraint(0,qn,fixWeight));
         //fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
@@ -201,6 +201,21 @@ public:
           offset += mesh.meshVertices;
         }
       }
+      }
+
+      // Initial Deformation
+      if(true){
+        int count = 0;
+        float deformation = 2.0f;
+        for(auto& mesh: meshes) {
+          for(auto& v:mesh.vertices){
+            v.X *= deformation;
+            qn[3*count]= v.X.x;
+            qn[3*count+1]= v.X.y;
+            qn[3*count+2]= v.X.z;
+            count ++;
+          }
+        }
       }
 
       //Precompute system for global solving
@@ -242,10 +257,12 @@ public:
       _LHS_LDLT.analyzePattern( leftSide );
       _LHS_LDLT.compute( leftSide );
 
-
+      writeOBJFile(0);
+      cout<<"0 ";
   }
 
-  int c = 0;
+
+  int c = 1;
   void update() {
     cout << c << " " << flush;
     // Compute Sn
@@ -352,7 +369,7 @@ int main(int argc, char *argv[]) {
   auto initialisationTime = chrono::steady_clock::now();
   std::chrono::duration<double> initialisationSeconds = initialisationTime-start;
 
-  for (int i = 0; i < nFrames; i++) {
+  for (int i = 1; i < nFrames; i++) {
       solver.update();
       scene->exportToOBJ(i);
   }
