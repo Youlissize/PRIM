@@ -302,8 +302,8 @@ VolumeConstraint::VolumeConstraint(int a, int b, int c,int d, FloatVector qn, fl
   MyS(3*d+1,3*d+1)=1.f;
   MyS(3*d+2,3*d+2)=1.f;
   MyS.convertToEigenFormat(S);
-  sMin = 0.8;
-  sMax = 1.2;
+  sMin = 0.95;
+  sMax = 1.05;
 
   AandBareIdentity = false;
 
@@ -399,11 +399,11 @@ void VolumeConstraint::project(FloatVector qn){
   //Clamping values
   for (int i =0; i <3; ++i){
     //cout << sigma[i] << endl;
-    /*
+
       if(sigma[i] < sMin) sigma[i] = sMin; // hard clamping
       if(sigma[i] > sMax) sigma[i] = sMax;
-    */
-      sigma[i] = (sigma[i]-1)*0.99 + 1; // smooth
+
+      //sigma[i] = (sigma[i]-1)*0.99 + 1; // smooth
       }
       if (m.determinant() <0 ){
         sigma[2] *= -1;
@@ -459,4 +459,37 @@ void VolumeConstraint::addProjection(FloatVector& rs){
   rs[3*d+2] += w*v4.z;
   }
 
+}
+
+
+CollisionConstraint::CollisionConstraint(int _v, float _floorHeight, FloatVector q, float _w){
+  v = _v;
+  floorHeight = _floorHeight;
+  w = _w;
+  AandBareIdentity = true;
+  S = SparseMat();
+  int N = q.rows()/3;
+  MySparseMatrix MyS = MySparseMatrix(3*N,3*N);
+  MyS(3*v,3*v)=1.f;
+  MyS(3*v+1,3*v+1)=1.f;
+  MyS(3*v+2,3*v+2)=1.f;
+  MyS.convertToEigenFormat(S);
+}
+
+void CollisionConstraint::project(FloatVector q) {
+
+  if(q[3*v+1]<floorHeight){
+    inverseSpeed = true;
+    projected = Vec3f(q[3*v],floorHeight,q[3*v+2]);
+  }
+  else{
+    inverseSpeed = false;
+    projected = Vec3f(q[3*v],q[3*v+1],q[3*v+2]);
+  }
+}
+
+void CollisionConstraint::addProjection(FloatVector& qn){
+  qn[3*v]+=w*projected.x;
+  qn[3*v+1]+=w*projected.y;
+  qn[3*v+2]+=w*projected.z;
 }

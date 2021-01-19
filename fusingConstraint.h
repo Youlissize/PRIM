@@ -84,7 +84,17 @@ public:
          void addProjection(FloatVector& rs) ;
   };
 
+  class CollisionConstraint : public FusingConstraint {
+  public:
+    int v;
+    float floorHeight;
+    Vec3f projected;
+    bool inverseSpeed;
 
+    CollisionConstraint(int _v,float _floorHeight,FloatVector q,float _w);
+      void project(FloatVector q) ;
+      void addProjection(FloatVector& qn);
+      };
 
 
 

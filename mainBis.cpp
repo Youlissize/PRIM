@@ -40,12 +40,15 @@ string objectFile;       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 150;
+int nFrames = 80;
 Real h = 1.0f/24.0f;                     // time step
 int solverIteration = 6;
 
 // Coefficients
-Vec3f  _g = Vec3f(0, 0, 0);                    // gravity
+Vec3f  _g = Vec3f(0, -9.8f, 0);                    // gravity
+float floorHeight = -1.0f; // for collision
+float bounciness = 1.5f; //for collision
+float friction = 0.5f; //for collision
 
 // Variables
 int N; //total number of vertices
@@ -63,6 +66,7 @@ vector<FixConstraint> fixConstraints = vector<FixConstraint>();
 vector<StrainConstraint> strainConstraints = vector<StrainConstraint>();
 vector<StretchConstraint> stretchConstraints = vector<StretchConstraint>();
 vector<VolumeConstraint> volumeConstraints = vector<VolumeConstraint>();
+vector<CollisionConstraint> collisionConstraints = vector<CollisionConstraint>();
 
 
 
@@ -203,8 +207,20 @@ public:
       }
       }
 
-      // Initial Deformation
+      //CollisionConstraint
       if(true){
+        int count = 0;
+        float collisionWeight = 100.0f;
+        for(auto& mesh: meshes) {
+          for(auto& v:mesh.vertices){
+            collisionConstraints.push_back( CollisionConstraint(count, floorHeight, qn, collisionWeight ));
+            count ++;
+          }
+        }
+      }
+
+      // Initial Deformation
+      if(false){
         int count = 0;
         float deformation = 2.0f;
         for(auto& mesh: meshes) {
@@ -254,6 +270,14 @@ public:
           leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
         }
       }
+      for (auto& c : collisionConstraints) {
+        if(c.AandBareIdentity){
+          leftSide += c.w * c.S.transpose() * c.S;
+        }
+        else {
+          leftSide += c.w * c.S.transpose() * c.A.transpose() * c.A * c.S;
+        }
+      }
       _LHS_LDLT.analyzePattern( leftSide );
       _LHS_LDLT.compute( leftSide );
 
@@ -281,7 +305,6 @@ public:
       for(auto& st : strainConstraints) {
         st.project(qn1);
       }
-
       #pragma omp parallel
       for(auto& st : stretchConstraints) {
         st.project(qn1);
@@ -289,6 +312,10 @@ public:
       #pragma omp parallel
       for(auto& vc : volumeConstraints) {
         vc.project(qn1);
+      }
+      #pragma omp parallel
+      for(auto& cc : collisionConstraints) {
+        cc.project(qn1);
       }
 
       // update rightSide
@@ -304,6 +331,9 @@ public:
       for(auto& vc : volumeConstraints){ // Maybe useless
         vc.addProjection(rightSide);
       }
+      for(auto& cc : collisionConstraints){ // Maybe useless
+        cc.addProjection(rightSide);
+      }
       //Global Solve
       qn1 = _LHS_LDLT.solve( rightSide );
     }
@@ -313,6 +343,13 @@ public:
 
     //Update velocity
     velocity = (qn1-qn) /h;
+    for (auto& cc:collisionConstraints) {
+      if(cc.inverseSpeed){
+        velocity[3*cc.v+1] = abs(velocity[3*cc.v+1] * bounciness);
+        velocity[3*cc.v] *= friction;
+        velocity[3*cc.v+2] *= friction;
+      }
+    }
     qn = qn1;
 
     //Update Mesh and export
