@@ -27,7 +27,7 @@ typedef long int tIndex;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/chocolateBunny.obj";       // Mesh to import
+string objectFile = "Meshes/blueCube.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
@@ -102,12 +102,13 @@ public:
       scene->setMeshes(meshesPointers);
       int a =0,b =0;
       for (int i =0; i < meshes[0].vertices.size();i++){
-        if(meshes[0].vertices[i].X.y > 8.92 || meshes[0].vertices[i].X.x > 1.8 ||  meshes[0].vertices[i].X.x < -1.3
+     /*   if(meshes[0].vertices[i].X.y > 8.92 || meshes[0].vertices[i].X.x > 1.8 ||  meshes[0].vertices[i].X.x < -1.3
            ||meshes[0].vertices[i].X.z  > 1.25 || meshes[0].vertices[i].X.z < -1.4   ){ fixConstraints.push_back(FixConstraint(&meshes[0].vertices[i]));
         a++;}
-        else b++;
-      }
+        else b++;*/
 
+      }
+      fixConstraints.push_back(FixConstraint(&meshes[0].vertices[0]));
 
 
       for (int i =0; i < meshes.size();++i){
@@ -131,7 +132,7 @@ public:
                   else if (t2.B!=e.A && t2.B!=e.B){ v4 = &meshes[i].vertices[t2.B]; }
                   else if (t2.C!=e.A && t2.C!=e.B){ v4 = &meshes[i].vertices[t2.C]; }
 
-                  bendConstraints.push_back(BendConstraint(&meshes[i].vertices[e.A],&meshes[i].vertices[e.B],v3,v4,k_bending));
+                 // bendConstraints.push_back(BendConstraint(&meshes[i].vertices[e.A],&meshes[i].vertices[e.B],v3,v4,k_bending));
                 }
               }
             }

@@ -302,22 +302,26 @@ public:
 
       //Local constraints solve (could be done in parralel)
       #pragma omp parallel
-      for(auto& st : strainConstraints) {
+      for(int i =0; i< strainConstraints.size(); ++i) {
+        StrainConstraint st = strainConstraints[i];
         st.project(qn1);
       }
       #pragma omp parallel
-      for(auto& st : stretchConstraints) {
+      for(int i =0; i<  stretchConstraints.size(); ++i) {
+        StretchConstraint st = stretchConstraints[i];
         st.project(qn1);
       }
       #pragma omp parallel
-      for(auto& vc : volumeConstraints) {
+      
+      for(int l =0; l < volumeConstraints.size();++l) {
+        VolumeConstraint vc = volumeConstraints[l];
         vc.project(qn1);
       }
       #pragma omp parallel
-      for(auto& cc : collisionConstraints) {
+      for(int l =0; l < collisionConstraints.size(); ++l) {
+        CollisionConstraint cc = collisionConstraints[l];
         cc.project(qn1);
       }
-
       // update rightSide
       for(auto& st : strainConstraints) {
           st.addProjection(rightSide);
