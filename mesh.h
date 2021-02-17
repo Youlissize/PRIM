@@ -73,6 +73,7 @@ public:
 
   Mesh (string FILENAME,bool isDeformable,float vertexWeight);
   void printVertexAndTrianglesAndEdges();
+  void writeNodeFile();
   string exportToOBJ(long totalVertices, long totalTextures, long totalNormals, int c);
 
 

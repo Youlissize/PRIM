@@ -182,7 +182,7 @@ public:
       }
 
       // FixConstraints
-      if(false){
+      if(true){
         float fixWeight = 100000.0f;
         fixConstraints.push_back(FixConstraint(0,qn,fixWeight));
         //fixConstraints.push_back(FixConstraint(1,qn,fixWeight));
@@ -195,7 +195,7 @@ public:
       }
       // VolumeConstraints
       if(true){
-        float volumeWeight = 100.0f;
+        float volumeWeight = 1.0f;
         int offset = 0;
         for(auto& mesh : meshes){
           if(mesh.isTetraedral){
@@ -208,7 +208,7 @@ public:
       }
 
       //CollisionConstraint
-      if(true){
+      if(false){
         int count = 0;
         float collisionWeight = 100.0f;
         for(auto& mesh: meshes) {

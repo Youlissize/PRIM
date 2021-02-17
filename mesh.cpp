@@ -45,7 +45,6 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
   Mesh::Mesh (string FILENAME,bool isDeformable,float vertexWeight) {
     this->isDeformable = isDeformable;
     ifstream file(FILENAME);
-
     // .obj Format
     if(FILENAME.find(".obj") != string::npos) {
       this-> isTetraedral = false;
@@ -56,7 +55,7 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
           float maxY = 0.f , maxX = 0.f, minX = 100.f , minY = 100.f;
           int maxYIndex = -1;
           while (std::getline(file, line)) {
-                  //cout << line << endl;
+            //      cout << line << endl;
               vector<string> words;
               split(line, ' ', back_inserter(words));
           for (int i =0; i < words.size(); i++){
@@ -195,9 +194,9 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
                   for (int i =0; i < words.size(); i++){
                     if (words[i] == "") words.erase(words.begin() + i);
                   }
-                  float x = stof(words[0]);
-                  float y = stof(words[1]);
-                  float z = stof(words[2]);
+                  float x = stod(words[0]);
+                  float y = stod(words[1]);
+                  float z = stod(words[2]);
                   vertices.push_back({Vec3f(x, y, z),Vec3f(x, y, z),1.f/vertexWeight,Vec3f(),Vec3f(),vector<int>(),vector<int>()});
                 }
               }
@@ -211,9 +210,11 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
                   words.clear();
                   std::getline(file, line);
                   split(line, ' ', back_inserter(words));
+                  vector<string> words2;
                   for (int i =0; i < words.size(); i++){
-                    if (words[i] == "") words.erase(words.begin() + i);
+                    if (words[i] != "") words2.push_back(words[i]);
                   }
+                  words = words2;
                   int a = stoi(words[0])-1;
                   int b = stoi(words[1])-1;
                   int c = stoi(words[2])-1;
@@ -240,9 +241,11 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
                   words.clear();
                   std::getline(file, line);
                   split(line, ' ', back_inserter(words));
+                  vector<string> words2;
                   for (int i =0; i < words.size(); i++){
-                    if (words[i] == "") words.erase(words.begin() + i);
+                    if (words[i] != "") words2.push_back(words[i]);
                   }
+                  words = words2;
                   int a = stoi(words[0])-1;
                   int b = stoi(words[1])-1;
                   int c = stoi(words[2])-1;
@@ -318,7 +321,7 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
     else {
       cout<<"WARNING : File Format not supported"<<endl;
     }
-
+  writeNodeFile();
   }
 
 
@@ -383,4 +386,28 @@ int findEdge(vector<Edge> edges, Edge e){ //return the position in vector of e ,
 
 
 
+  }
+
+  void Mesh::writeNodeFile(){
+    cout << "aled" << endl;
+    string myfile = to_string(vertices.size());
+    myfile += " 3 0 0\n";
+
+    int i = 1;
+    for (auto v:vertices){
+      auto x= v.X;
+      myfile = myfile + to_string(i)+ " " + to_string(x.x) +" " + to_string(x.y) + " " + to_string(x.z) + '\n';
+      ++i;
+    }
+    myfile += '\n' + to_string(triangles.size()) + " 0\n";
+    for (auto t:triangles){
+      myfile += "1\n3 ";
+      myfile += to_string(t.A+1) + " " + to_string(t.B+1) + " " +to_string(t.C+1) + '\n';
+    }
+    myfile += "0\n\n0"; 
+    ofstream myNodeFile;
+    string name = meshName;
+    myNodeFile.open (name+ ".poly");
+    myNodeFile << myfile;
+    myNodeFile.close();
   }

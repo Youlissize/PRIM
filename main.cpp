@@ -27,15 +27,15 @@ typedef long int tIndex;
 // Objects
 vector<Mesh> meshes;
 Scene* scene = new Scene();
-string objectFile = "Meshes/blueCube.obj";       // Mesh to import
+string objectFile = "Meshes/bunnyLessVertices.obj";       // Mesh to import
 string floorFile = "Meshes/floor.obj";
 
 // simulation
-int nFrames = 400;
-Real _dt = 1.f/60;                     // time step
-int solverIteration = 15;
-float k_streching = 1; //streching
-//float k_streching = 1.f-pow((1.f-streching),1.f/solverIteration);
+int nFrames = 100;
+Real _dt = 1.f/30;                     // time step
+int solverIteration = 4;
+float stretching = 0.1; //streching
+float k_streching = 1.f-pow((1.f-stretching),1.f/solverIteration);
 float k_bending = 0.99; //bending
 //float k_bending = 1.f-pow((1.f-bending),1.f/solverIteration);
 float k_bouncing = 0.99999; //bouncing
@@ -92,7 +92,7 @@ public:
       meshes = vector<Mesh>();
 
       meshes.push_back(Mesh(objectFile,true,0.01f));
-      meshes.push_back(Mesh(floorFile,false,1.0f));
+     // meshes.push_back(Mesh(floorFile,false,1.0f));
 
 
       vector<Mesh*> meshesPointers = vector<Mesh*>();
